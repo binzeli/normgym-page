@@ -34,7 +34,7 @@ a:hover { text-decoration: underline; }
 header { text-align: center; margin-bottom: 48px; }
 
 h1 {
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
@@ -50,13 +50,13 @@ h1 .name { font-variant: small-caps; letter-spacing: 0.01em; }
 
 .authors {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   width: min(900px, calc(100vw - 32px));
   margin-left: 50%;
   transform: translateX(-50%);
 }
 .authors span, .affiliations span { display: inline-block; white-space: nowrap; }
-.authors span { margin: 0 6px; }
+.authors span { margin: 0 7px; }
 .authors sup, .affiliations sup { font-size: 0.65em; margin-left: 1px; }
 .affiliations { margin: 14px 0 0; font-size: 14.5px; color: var(--muted); line-height: 1.65; }
 .affiliations span { margin: 0 8px; }
