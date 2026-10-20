@@ -15,8 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://binzeli.github.io/normgym-page/">Project Page</a> ·
-  <a href="static/normgym.pdf">Paper</a>
+  <a href="https://binzeli.github.io/normgym-page/">Project Page</a>
 </p>
 
 ---
@@ -55,7 +54,7 @@ Every norm is deliberately arbitrary (a “silly rule”), so an agent cannot su
 | Best open model (Ministral-3-8B) | 3.3 / 4.0 | 49.7 / 50.0 |
 | Human (best observed) | 88.0 / 88.0 | 100.0 / 100.0 |
 
-See the [project page](https://binzeli.github.io/normgym-page/) or the [paper](static/normgym.pdf) for full results.
+See the [project page](https://binzeli.github.io/normgym-page/) for full results.
 
 ## Citation
 
