@@ -5,7 +5,7 @@
 <h1 align="center">NormGym: Evaluating Normative Competence through Social Interaction</h1>
 
 <p align="center">
-  Binze Li<sup>1</sup>, Zihuan Zhang<sup>1</sup>, Seokhyun Baek<sup>1</sup>, Gillian K. Hadfield<sup>1,2,3*</sup>, Tianmin Shu<sup>1*</sup>
+  Binze Li<sup>1</sup>, Zihuan Zhang<sup>1</sup>, Seokhyun Baek<sup>1</sup>, Gillian K. Hadfield<sup>*1,2,3</sup>, Tianmin Shu<sup>*1</sup>
   <br>
   <sup>1</sup>Department of Computer Science, Johns Hopkins University&nbsp;&nbsp;
   <sup>2</sup>School of Government and Policy, Johns Hopkins University&nbsp;&nbsp;
