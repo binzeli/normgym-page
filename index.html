@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NormGym: Evaluating Normative Competence through Social Interaction</title>
+  <meta name="description" content="NormGym is an interactive multi-agent benchmark in which a newcomer agent must infer a hidden, arbitrary community norm from other agents' behavior and public sanctions.">
+  <meta property="og:title" content="NormGym: Evaluating Normative Competence through Social Interaction">
+  <meta property="og:description" content="Can agents learn the unwritten rules of a community by watching it? The best LLM we tested reaches 55.3% joint success.">
+  <meta property="og:image" content="static/video/poster.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="static/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+<main>
+
+  <header>
+    <div class="title-row">
+      <img class="emblem" src="static/img/emblem.svg" alt="NormGym logo: a robot agent with a red sanction mark, watched by a community of people along a dashed boundary.">
+      <h1><span class="name">NormGym</span>: Evaluating Normative Competence <br class="lg">through Social Interaction</h1>
+    </div>
+    <p class="authors">
+      <span>Binze Li<sup>1</sup></span>
+      <span>Zihuan Zhang<sup>1</sup></span>
+      <span>Seokhyun Baek<sup>1</sup></span>
+      <span>Gillian K. Hadfield<sup>1,2,3*</sup></span>
+      <span>Tianmin Shu<sup>1*</sup></span>
+    </p>
+    <p class="affiliations">
+      <span><sup>1</sup>Department of Computer Science, Johns Hopkins University</span>
+      <span><sup>2</sup>School of Government and Policy, Johns Hopkins University</span>
+      <span><sup>3</sup>Vector Institute for Artificial Intelligence</span>
+    </p>
+    <p class="equal">*Equal advising</p>
+    <p class="links">
+      <a href="static/normgym.pdf">Paper</a>
+      <span>Code (coming soon)</span>
+      <a href="#bibtex">BibTeX</a>
+    </p>
+  </header>
+
+  <section id="video">
+    <video controls muted playsinline preload="metadata" poster="static/video/poster.jpg">
+      <source src="static/video/demo.mp4" type="video/mp4">
+    </video>
+    <figcaption>
+      A newcomer, played by Claude Opus 5, enters a café where customers may only sit in the
+      bottom-right region. It is never told this. While pursuing its own goal in the café, it is
+      sanctioned for its own violations and sees the sanctions other customers receive. The panel
+      on the right shows its current guess at the norm.
+    </figcaption>
+  </section>
+
+  <section>
+    <h2>Abstract</h2>
+    <p class="abstract">
+      Normative competence, the ability to infer socially enforced expectations from interaction
+      and adjust behavior accordingly, is essential for agents operating in unfamiliar human
+      communities. Yet existing evaluations largely test whether agents can recognize or apply norms
+      they may already know, rather than whether they can acquire previously unknown norms from
+      social interaction. We introduce <span style="font-variant: small-caps">NormGym</span>, an
+      interactive benchmark for normative competence in which a newcomer must infer a hidden,
+      arbitrary norm while pursuing its own task in a multi-agent community. Success requires
+      distinguishing what is possible from what is permitted, inferring the norm from observed
+      behavior and sanctions, and applying it in new situations. NormGym contains diverse norms and
+      distinct environments, allowing systematic evaluation of current agents, including large
+      language model (LLM) agents. We find that normative competence remains challenging: the
+      strongest evaluated LLM achieves a joint task-and-compliance success rate of 55.3%. Our
+      analysis reveals that models can sometimes revise their behavior following sanctions for their
+      own actions, but struggle to use other agents’ behavior and the sanctions they receive to infer
+      the underlying norm. We further find that fine-tuning models may be insufficient to improve
+      normative competence. These results suggest that current models lack a robust, transferable
+      capability for acquiring normative knowledge through social interaction.
+    </p>
+  </section>
+
+  <section>
+    <h2>Learning the local rules</h2>
+    <p>
+      Think of someone on their first day at a new job. Nobody hands them a list of the unwritten
+      rules: where to walk, when it is fine to change the TV channel, how people line up for
+      snacks. They pick these up by watching others and noticing when someone gets corrected.
+      An agent deployed into a human community faces the same problem.
+    </p>
+    <p>
+      NormGym tests this directly. A newcomer enters a grid-world community (a café, a post office,
+      a grocery store) that follows a hidden norm. Breaking the norm is physically possible, but
+      it gets the offender publicly sanctioned. The newcomer has its own task to finish and has to
+      work out the norm along the way, from its own mistakes and from what happens to everyone else.
+    </p>
+
+    <figure>
+      <a href="static/img/fig1_trace.png"><img src="static/img/fig1_trace.png" alt="Timeline of a newcomer named Jude in a café: sanctioned at t=11 and t=75, observes a peer violation at t=106, sits correctly at t=124, and states the learned norm at t=200."></a>
+      <figcaption>
+        <b>An example episode.</b> Jude is sanctioned twice for sitting in the wrong area, then sees
+        another customer, Drew, sanctioned for the same seat. By t = 124 Jude sits in the permitted
+        region, and at t = 200 states a norm close to the ground truth.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Arbitrary norms</h2>
+    <p>
+      If the norms were familiar ones, a language model could simply recall them from pretraining.
+      So every norm in NormGym is deliberately arbitrary: a “silly rule” that the community enforces
+      even though nothing physical requires it. The 50 norms fall into four families:
+    </p>
+    <ul class="families">
+      <li><b>Access</b> (12): where an agent may go, e.g. sit only in one area or avoid a zone.</li>
+      <li><b>Procedure</b> (11): how or when an agent moves, e.g. move only on even time steps.</li>
+      <li><b>Coordination</b> (16): position relative to others, e.g. join a staircase-shaped queue at its tail.</li>
+      <li><b>Allocation</b> (11): how a shared resource is divided, e.g. at most two agents in a zone.</li>
+    </ul>
+
+    <figure>
+      <a href="static/img/fig2_norms.png"><img src="static/img/fig2_norms.png" alt="Two example norms from each of the four families, each shown with a compliant and a violating trajectory."></a>
+      <figcaption>
+        <b>Example norms from each family.</b> In each pair, the left panel is compliant and the
+        right panel is a violation.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>How agents are evaluated</h2>
+    <p>
+      Evaluation has two phases. In the <b>learning phase</b>, the newcomer spends 200 steps in the
+      community. At every step it sees the full state, every agent’s action, and who was sanctioned,
+      and it writes down its current belief about the norm. At least one background agent breaks the
+      norm, so there is always something to learn from.
+    </p>
+    <p>
+      In the <b>test phase</b>, the final belief is frozen and the agent plays fresh episodes, three
+      on the layout it learned on and three on a layout it has never seen. Every test episode is set up
+      so that the shortest path breaks the norm. An episode counts as a <b>joint success</b> only if
+      the agent finishes its task without a single violation.
+    </p>
+
+    <figure>
+      <a href="static/img/fig3_protocol.png"><img src="static/img/fig3_protocol.png" alt="Diagram of the two-phase protocol: interactive learning with belief updates, then evaluation on seen and unseen layouts; plus four example layouts."></a>
+      <figcaption>
+        <b>(a)</b> The newcomer acts, observes sanctions and compliant behavior, and updates its belief
+        b<sub>t</sub>. The final belief b<sub>T</sub> is then tested on seen and unseen layouts.
+        <b>(b)</b> Four of the ten layouts.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Results</h2>
+    <p>
+      We test seven LLM agents, two deep RL baselines trained per norm, and 50 human participants.
+      Each cell shows performance on the seen layout and then on unseen layouts.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2"></th>
+            <th colspan="5">Joint success (%)</th>
+            <th>Task (%)</th>
+          </tr>
+          <tr>
+            <th>Access</th><th>Procedure</th><th>Coord.</th><th>Alloc.</th><th>All</th><th>All</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Claude Opus 5</td><td><b>69.4</b> / <b>69.4</b></td><td><b>48.5</b> / 54.5</td><td><b>66.7</b> / <b>54.2</b></td><td>30.3 / 24.2</td><td><b>55.3</b> / <b>51.3</b></td><td><b>95.7</b> / <b>96.7</b></td></tr>
+          <tr><td>GPT-5.6 Sol</td><td><b>69.4</b> / 44.4</td><td>45.5 / <b>57.6</b></td><td>20.8 / 29.2</td><td><b>48.5</b> / <b>36.4</b></td><td>44.0 / 40.7</td><td>86.3 / 83.0</td></tr>
+          <tr><td>Gemini 3.1 Pro</td><td>36.1 / 36.1</td><td>0.0 / 0.0</td><td>37.5 / 14.6</td><td>15.2 / 15.2</td><td>24.0 / 16.7</td><td>90.3 / 87.7</td></tr>
+          <tr><td>GLM-4.6V-Flash</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>11.7 / 15.7</td></tr>
+          <tr><td>Qwen3-VL-8B</td><td>5.6 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 3.0</td><td>1.3 / 0.6</td><td>38.3 / 34.0</td></tr>
+          <tr><td>Llama-3.2-11B</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>3.0 / 3.0</td></tr>
+          <tr><td>Ministral-3-8B</td><td>8.3 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 2.1</td><td>6.1 / 6.1</td><td>3.3 / 4.0</td><td>49.7 / 50.0</td></tr>
+          <tr class="sep"><td>RL (DQN-MLP)</td><td>33.3 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>8.0 / 2.0</td><td>10.7 / 3.0</td></tr>
+          <tr><td>RL (DQN-CNN)</td><td>44.4 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>9.1 / 0.0</td><td>12.7 / 2.0</td><td>16.0 / 11.3</td></tr>
+          <tr class="sep ref"><td>Human<sup>†</sup></td><td>100.0 / 100.0</td><td>100.0 / 80.0</td><td>88.0 / 100.0</td><td>67.0 / 67.0</td><td>88.0 / 88.0</td><td>100.0 / 100.0</td></tr>
+          <tr class="ref"><td>Known-Norm LLM</td><td>100.0 / 100.0</td><td>84.8 / 84.8</td><td>91.7 / 83.4</td><td>84.8 / 87.8</td><td>90.7 / 88.7</td><td>99.7 / 97.0</td></tr>
+          <tr class="ref"><td>Norm Oracle</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td></tr>
+          <tr class="ref"><td>Norm-Blind Planner</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>100.0 / 100.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      Bold marks the best baseline in each column. Grey rows are references: Known-Norm is GPT-5.6 Sol
+      told the norm directly; the Oracle and Blind planners are A* with and without the norm.
+      <sup>†</sup>Best observed human performance on 25 randomly selected norms.
+    </p>
+
+    <h3><span class="finding-num">1.</span>The tasks are easy. The norms are not.</h3>
+    <p>
+      Claude Opus 5 completes its task 95.7% of the time but succeeds jointly only 55.3% of the time.
+      When GPT-5.6 Sol is told the norm, its joint success jumps from 44.0% to 90.7%. The models can
+      follow a norm once they know it; the hard part is figuring it out. Smaller open models almost
+      never succeed, and per-norm DQN agents do little better.
+    </p>
+
+    <h3><span class="finding-num">2.</span>Learning stalls early.</h3>
+    <p>
+      For the stronger models, belief correctness rises quickly over the first 50 steps and then
+      levels off below the ground truth (panel b below). This is not for lack of evidence: they keep
+      getting sanctioned for the rest of the episode. They settle on an incomplete belief and stop
+      revising it.
+    </p>
+
+    <figure>
+      <a href="static/img/fig4_analysis.png"><img src="static/img/fig4_analysis.png" alt="Bar charts of path length, collisions, community path length and welfare per model; line plots of belief correctness and cumulative violations over 200 steps; bar chart of belief change by evidence type; and a bar chart of evidence humans relied on."></a>
+      <figcaption>
+        <b>(a)</b> Secondary metrics: weaker models take longer paths, collide more, and lower the
+        welfare of the surrounding community. <b>(b)</b> Belief correctness and cumulative violations
+        over the learning phase. <b>(c)</b> Change in belief correctness after each kind of evidence.
+        <b>(d)</b> What human participants say they relied on.
+      </figcaption>
+    </figure>
+
+    <h3><span class="finding-num">3.</span>Models learn from their own mistakes, not from others’.</h3>
+    <p>
+      Beliefs improve most after the model’s own violation, much less after watching another agent get
+      sanctioned, and hardly at all after watching compliant behavior (panel c). Humans are the
+      opposite: most say they learned mainly by watching others (panel d). In the example below,
+      GPT-5.6 Sol keeps a wrong hypothesis through 173 observed moves that directly contradict it,
+      and only changes its mind once it is sanctioned itself.
+    </p>
+
+    <figure>
+      <a href="static/img/fig5_failure.png"><img src="static/img/fig5_failure.png" alt="Timeline from t=40 to t=96 where the model keeps a wrong belief despite 173 contradicting observations and revises only after its own violation."></a>
+      <figcaption>
+        <b>Ignoring evidence from others.</b> The true norm forbids moving on even time steps. The
+        model’s belief stays unchanged at t = 44 and t = 64 and is revised only after its own
+        violation at t = 96.
+      </figcaption>
+    </figure>
+
+    <h3><span class="finding-num">4.</span>Fine-tuning helps a little.</h3>
+    <p>
+      We fine-tune Qwen3-VL-4B with LoRA and RLOO on 33 norms and test on 17 held-out norms from the
+      same families. Training on compliant actions together with judging other agents’ actions works
+      best, raising joint success from 0.0% to 13.7%. But even after training, the model’s beliefs
+      barely change after it watches other agents, so the main failure remains.
+    </p>
+
+    <div class="table-wrap">
+      <table class="small">
+        <thead>
+          <tr><th>Training task</th><th>Joint (%)</th><th>Task (%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Base model</td><td>0.0</td><td>23.5</td></tr>
+          <tr><td>Norm Selection</td><td>3.9</td><td>33.3</td></tr>
+          <tr><td>Compliant Action</td><td>2.0</td><td>43.1</td></tr>
+          <tr><td>Norm Judgment</td><td>0.0</td><td>23.5</td></tr>
+          <tr><td>Action + Judgment</td><td><b>13.7</b></td><td><b>44.1</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note" style="text-align:center">Held-out norms, seen layout.</p>
+  </section>
+
+  <section>
+    <h2>Limitations</h2>
+    <p>
+      NormGym isolates norm learning in a controlled setting and simplifies real social life in
+      several ways. Each episode has a single fixed norm, sanctions are public and immediate, and the
+      other community members follow scripted planners. Real communities have noisy feedback, varied
+      behavior, and several norms that change over time. Our fine-tuning experiments also use only one
+      small base model.
+    </p>
+  </section>
+
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+    <div class="bib">
+      <button class="copy" type="button">Copy</button>
+<pre><code>@misc{li2026normgym,
+  title  = {{NormGym}: Evaluating Normative Competence through Social Interaction},
+  author = {Li, Binze and Zhang, Zihuan and Baek, Seokhyun and Hadfield, Gillian K. and Shu, Tianmin},
+  year   = {2026}
+}</code></pre>
+    </div>
+  </section>
+
+  <footer>
+    Last updated October 2026.
+  </footer>
+
+</main>
+<script>
+  document.querySelector('.copy').addEventListener('click', function () {
+    var btn = this;
+    var text = document.querySelector('.bib code').innerText;
+    navigator.clipboard.writeText(text).then(function () {
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+    });
+  });
+</script>
+</body>
+</html>
