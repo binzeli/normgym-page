@@ -65,7 +65,3 @@ See the [project page](https://binzeli.github.io/normgym-page/) for full results
   year   = {2026}
 }
 ```
-
-## About this repository
-
-This repository hosts the source of the NormGym project page: a static site (`index.html` and `static/`) served with GitHub Pages. To preview it locally, run `python3 -m http.server` in this folder and open http://localhost:8000.
