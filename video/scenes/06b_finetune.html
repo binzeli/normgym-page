@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  #sub { top: 128px; font-size: 30px; color: var(--muted); }
+  #chart { position: absolute; left: 90px; top: 340px; }
+  #legend { position: absolute; left: 450px; top: 316px; display: flex; gap: 36px; font-size: 26px; color: #444; }
+  #legend span::before { content: ''; display: inline-block; width: 22px; height: 22px; border-radius: 4px; margin-right: 10px; vertical-align: -3px; background: var(--c); }
+  #side { position: absolute; left: 1310px; top: 470px; width: 520px; }
+  .tile { padding: 30px 34px; margin-bottom: 34px; }
+  .tile .d { font-size: 30px; color: #333; line-height: 1.45; }
+  #take { top: 958px; font-size: 38px; }
+</style>
+</head>
+<body>
+<div class="heading" id="head">Does fine-tuning help?</div>
+<div class="caption" id="sub">Qwen3-VL-4B trained on 33 norms, tested on 17 held-out norms from the same families</div>
+<div id="legend"><span style="--c:#23417a">Joint success</span><span style="--c:#8ea3c8">Task success</span></div>
+<svg id="chart" width="1180" height="440"></svg>
+<div id="side">
+  <div class="tile card" id="t2">
+    <div class="d">Beliefs still barely change after watching other agents.</div>
+  </div>
+</div>
+<div class="caption" id="take">Fine-tuning helps a little, but the main failure remains.</div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 10;
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+const svg = $('#chart');
+const ROWS = [
+  ['Base model', 0.0, 23.5, 'ref'],
+  ['Fine-tuned', 13.7, 44.1],
+];
+const X0 = 360, SCALE = 7.2, BAR = 44, GAP = 4, ROW = 160;
+const COLORS = { joint: '#23417a', task: '#8ea3c8', refJoint: '#8a8a8a', refTask: '#c4c4c4' };
+// recessive grid
+for (const v of [0, 25, 50, 75, 100]) {
+  el('line', { x1: X0 + v * SCALE, y1: 40, x2: X0 + v * SCALE, y2: 360, stroke: v ? '#e7dfd0' : '#b9ad98', 'stroke-width': v ? 1.5 : 2 }, svg);
+  const tx = el('text', { x: X0 + v * SCALE, y: 396, 'text-anchor': 'middle', 'font-size': 22, fill: '#888', 'font-family': 'IBM Plex Sans' }, svg);
+  tx.textContent = v;
+}
+let y = 80;
+const marks = ROWS.map(([name, joint, task, kind], i) => {
+  if (kind === 'gap') y += 18;
+  const g = el('g', {}, svg);
+  const label = el('text', { x: X0 - 22, y: y + BAR + 12, 'text-anchor': 'end', 'font-size': 32, fill: kind === 'ref' ? '#666' : '#222', 'font-family': 'IBM Plex Sans', 'font-weight': i === 1 ? 600 : 400 }, g);
+  label.textContent = name;
+  const bars = [[joint, kind === 'ref' ? COLORS.refJoint : COLORS.joint, y], [task, kind === 'ref' ? COLORS.refTask : COLORS.task, y + BAR + GAP]].map(([v, c, by]) => {
+    const r = el('path', { fill: c }, g);
+    const t = el('text', { y: by + BAR - 12, 'font-size': 26, fill: '#555', 'font-family': 'IBM Plex Sans' }, g);
+    t.textContent = v.toFixed(1);
+    return { v, r, t, by };
+  });
+  const row = { g, bars, y };
+  y += ROW;
+  return row;
+});
+// a bar with a 4px rounded data-end, anchored square on the baseline
+function barPath(x, y, w, h) {
+  if (w <= 0) return '';
+  const r = Math.min(4, w);
+  return `M ${x} ${y} H ${x + w - r} Q ${x + w} ${y} ${x + w} ${y + r} V ${y + h - r} Q ${x + w} ${y + h} ${x + w - r} ${y + h} H ${x} Z`;
+}
+
+window.seek = function (t) {
+  enter($('#head'), t, 0); enter($('#sub'), t, 0.3); enter($('#legend'), t, 0.5);
+  marks.forEach((m, i) => {
+    const u = smooth(p(t, 0.9 + i * 0.3, 2.1 + i * 0.3));
+    m.g.setAttribute('opacity', smooth(p(t, 0.8 + i * 0.3, 1.1 + i * 0.3)));
+    for (const b of m.bars) {
+      const w = b.v * SCALE * u;
+      b.r.setAttribute('d', barPath(X0, b.by, w, BAR));
+      b.t.setAttribute('x', X0 + w + 10);
+      b.t.setAttribute('opacity', smooth(p(t, 1.8 + i * 0.3, 2.2 + i * 0.3)));
+    }
+  });
+  enter($('#t2'), t, 3.8);
+  enter($('#take'), t, 6.0);
+};
+window.seek(0);
+</script>
+</body>
+</html>
