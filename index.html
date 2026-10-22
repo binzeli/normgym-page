@@ -40,9 +40,10 @@
     </p>
     <p class="equal">*Equal advising</p>
     <p class="links">
-      <span>Paper (coming soon)</span>
-      <span>Code (coming soon)</span>
-      <a href="#bibtex">BibTeX</a>
+      <span class="btn-paper">Paper (coming soon)</span>
+      <span class="btn-code">Code (coming soon)</span>
+      <a class="btn-demo" href="demo.html">Interactive demo</a>
+      <a class="btn-bib" href="#bibtex">BibTeX</a>
     </p>
   </header>
 
@@ -55,6 +56,7 @@
       bottom-right region. It is never told this. While pursuing its own goal in the café, it is
       sanctioned for its own violations and sees the sanctions other customers receive. The panel
       on the right shows its current guess at the norm.
+      <a href="demo.html">Step through it in the interactive demo.</a>
     </figcaption>
   </section>
 
@@ -158,43 +160,39 @@
     <h2>Results</h2>
     <p>
       We test seven LLM agents, two deep RL baselines trained per norm, and 50 human participants.
-      Each cell shows performance on the seen layout and then on unseen layouts.
+      We score each agent by its <b>joint success</b>: an episode succeeds only if the agent both
+      finishes its task <i>and</i> complies with the community’s norm throughout.
+      Dark bars show performance in test episodes whose layout is the same as in the learning stage;
+      light bars show performance in test episodes whose layout differs from the learning stage.
     </p>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th rowspan="2"></th>
-            <th colspan="5">Joint success (%)</th>
-            <th>Task (%)</th>
-          </tr>
-          <tr>
-            <th>Access</th><th>Procedure</th><th>Coord.</th><th>Alloc.</th><th>All</th><th>All</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Claude Opus 5</td><td><b>69.4</b> / <b>69.4</b></td><td><b>48.5</b> / 54.5</td><td><b>66.7</b> / <b>54.2</b></td><td>30.3 / 24.2</td><td><b>55.3</b> / <b>51.3</b></td><td><b>95.7</b> / <b>96.7</b></td></tr>
-          <tr><td>GPT-5.6 Sol</td><td><b>69.4</b> / 44.4</td><td>45.5 / <b>57.6</b></td><td>20.8 / 29.2</td><td><b>48.5</b> / <b>36.4</b></td><td>44.0 / 40.7</td><td>86.3 / 83.0</td></tr>
-          <tr><td>Gemini 3.1 Pro</td><td>36.1 / 36.1</td><td>0.0 / 0.0</td><td>37.5 / 14.6</td><td>15.2 / 15.2</td><td>24.0 / 16.7</td><td>90.3 / 87.7</td></tr>
-          <tr><td>GLM-4.6V-Flash</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>11.7 / 15.7</td></tr>
-          <tr><td>Qwen3-VL-8B</td><td>5.6 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 3.0</td><td>1.3 / 0.6</td><td>38.3 / 34.0</td></tr>
-          <tr><td>Llama-3.2-11B</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>3.0 / 3.0</td></tr>
-          <tr><td>Ministral-3-8B</td><td>8.3 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 2.1</td><td>6.1 / 6.1</td><td>3.3 / 4.0</td><td>49.7 / 50.0</td></tr>
-          <tr class="sep"><td>RL (DQN-MLP)</td><td>33.3 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>8.0 / 2.0</td><td>10.7 / 3.0</td></tr>
-          <tr><td>RL (DQN-CNN)</td><td>44.4 / 8.3</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>9.1 / 0.0</td><td>12.7 / 2.0</td><td>16.0 / 11.3</td></tr>
-          <tr class="sep ref"><td>Human<sup>†</sup></td><td>100.0 / 100.0</td><td>100.0 / 80.0</td><td>88.0 / 100.0</td><td>67.0 / 67.0</td><td>88.0 / 88.0</td><td>100.0 / 100.0</td></tr>
-          <tr class="ref"><td>Known-Norm LLM</td><td>100.0 / 100.0</td><td>84.8 / 84.8</td><td>91.7 / 83.4</td><td>84.8 / 87.8</td><td>90.7 / 88.7</td><td>99.7 / 97.0</td></tr>
-          <tr class="ref"><td>Norm Oracle</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td><td>100.0 / 100.0</td></tr>
-          <tr class="ref"><td>Norm-Blind Planner</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>0.0 / 0.0</td><td>100.0 / 100.0</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="table-note">
-      Bold marks the best baseline in each column. Grey rows are references: Known-Norm is GPT-5.6 Sol
-      told the norm directly; the Oracle and Blind planners are A* with and without the norm.
-      <sup>†</sup>Best observed human performance on 25 randomly selected norms.
-    </p>
+    <figure class="bars">
+      <div class="bar-legend">
+        <span><i class="seen"></i>Seen layout</span>
+        <span><i class="unseen"></i>Unseen layouts</span>
+      </div>
+      <div class="bar-rows">
+        <div class="bar-row"><span class="bar-label">Human<sup>†</sup></span><div class="bar-pair"><div class="bar seen" style="--v:88.0"><em>88.0</em></div><div class="bar unseen" style="--v:88.0"><em>88.0</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">Claude Opus 5</span><div class="bar-pair"><div class="bar seen" style="--v:55.3"><em>55.3</em></div><div class="bar unseen" style="--v:51.3"><em>51.3</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">GPT-5.6 Sol</span><div class="bar-pair"><div class="bar seen" style="--v:44.0"><em>44.0</em></div><div class="bar unseen" style="--v:40.7"><em>40.7</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">Gemini 3.1 Pro</span><div class="bar-pair"><div class="bar seen" style="--v:24.0"><em>24.0</em></div><div class="bar unseen" style="--v:16.7"><em>16.7</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">RL (DQN-CNN)</span><div class="bar-pair"><div class="bar seen" style="--v:12.7"><em>12.7</em></div><div class="bar unseen" style="--v:2.0"><em>2.0</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">RL (DQN-MLP)</span><div class="bar-pair"><div class="bar seen" style="--v:8.0"><em>8.0</em></div><div class="bar unseen" style="--v:2.0"><em>2.0</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">Ministral-3-8B</span><div class="bar-pair"><div class="bar seen" style="--v:3.3"><em>3.3</em></div><div class="bar unseen" style="--v:4.0"><em>4.0</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">Qwen3-VL-8B</span><div class="bar-pair"><div class="bar seen" style="--v:1.3"><em>1.3</em></div><div class="bar unseen" style="--v:0.6"><em>0.6</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">GLM-4.6V-Flash</span><div class="bar-pair"><div class="bar seen" style="--v:0.0"><em>0.0</em></div><div class="bar unseen" style="--v:0.0"><em>0.0</em></div></div></div>
+        <div class="bar-row"><span class="bar-label">Llama-3.2-11B</span><div class="bar-pair"><div class="bar seen" style="--v:0.0"><em>0.0</em></div><div class="bar unseen" style="--v:0.0"><em>0.0</em></div></div></div>
+        <div class="bar-row sep ref"><span class="bar-label">Known-Norm LLM<sup>‡</sup></span><div class="bar-pair"><div class="bar seen" style="--v:90.7"><em>90.7</em></div><div class="bar unseen" style="--v:88.7"><em>88.7</em></div></div></div>
+        <div class="bar-row ref"><span class="bar-label">Norm Oracle</span><div class="bar-pair"><div class="bar seen" style="--v:100.0"><em>100.0</em></div><div class="bar unseen" style="--v:100.0"><em>100.0</em></div></div></div>
+        <div class="bar-row ref"><span class="bar-label">Norm-Blind Planner</span><div class="bar-pair"><div class="bar seen" style="--v:0.0"><em>0.0</em></div><div class="bar unseen" style="--v:0.0"><em>0.0</em></div></div></div>
+      </div>
+      <figcaption>
+        Joint success (%) averaged over all norms, ranked by the seen layout. Grey bars at the bottom are references:
+        <sup>‡</sup>Known-Norm is GPT-5.6 Sol told the norm directly; the Oracle and Blind planners are
+        A* with and without the norm. <sup>†</sup>Best observed human performance on 25 randomly
+        selected norms.
+      </figcaption>
+    </figure>
 
     <h3><span class="finding-num">1.</span>The tasks are easy. The norms are not.</h3>
     <p>

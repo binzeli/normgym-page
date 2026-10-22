@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NormGym Interactive Demo</title>
+  <meta name="description" content="Step through a NormGym episode: a newcomer played by Claude Opus 5 tries to infer a hidden café seating norm.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="static/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+<main class="demo">
+
+  <p class="back"><a href="index.html">← <span class="name">NormGym</span></a></p>
+  <h2 class="demo-title">Interactive demo</h2>
+  <p class="demo-intro">
+    A newcomer, played by Claude Opus 5, enters a café where customers may only sit in the
+    bottom-right region. It is never told this. Drag the slider to any timestep to see where
+    everyone is, what the newcomer did and why, and what it currently believes the norm is.
+  </p>
+
+  <div class="dash">
+    <div class="player">
+      <video id="v" muted playsinline preload="auto" poster="static/video/poster.jpg">
+        <source src="static/video/demo.mp4" type="video/mp4">
+      </video>
+
+      <div class="scrub">
+        <div class="marks" id="marks"></div>
+        <input type="range" id="slider" min="0" max="200" step="1" value="0" aria-label="Timestep">
+      </div>
+
+      <div class="controls">
+        <button id="play" type="button" aria-label="Play">Play</button>
+        <button id="prev" type="button" aria-label="Previous step">◀</button>
+        <span class="tval">t = <b id="tnum">0</b> / 200</span>
+        <button id="next" type="button" aria-label="Next step">▶</button>
+        <span class="speed" role="group" aria-label="Playback speed">
+          <button type="button" data-rate="0.5">0.5×</button>
+          <button type="button" data-rate="1" class="on">1×</button>
+          <button type="button" data-rate="2">2×</button>
+        </span>
+      </div>
+
+      <div class="legend">
+        <span><i class="ev-new"></i>Newcomer violates</span>
+        <span><i class="ev-other"></i>Another customer violates</span>
+        <span><i class="ev-ok"></i>Newcomer follows</span>
+      </div>
+    </div>
+
+    <div class="side">
+      <section class="panel">
+        <h4>Newcomer</h4>
+        <div id="nc"></div>
+      </section>
+      <section class="panel">
+        <h4>Customers in the café <span class="count" id="ncount"></span></h4>
+        <ul class="agents" id="agents"></ul>
+        <p class="groups">
+          <span><i class="g-green"></i>green</span>
+          <span><i class="g-orange"></i>orange</span>
+          <span><i class="g-blue"></i>blue</span>
+          social groups
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <div class="dash-row">
+    <section class="panel">
+      <h4>Reasoning at this step</h4>
+      <p class="reason" id="reason"></p>
+    </section>
+    <section class="panel">
+      <h4>Current guess at the norm</h4>
+      <p class="belief" id="belief"></p>
+      <div class="conf"><span>Confidence</span><div class="conf-bar"><div id="confbar"></div></div><b id="conf"></b></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h4>Events</h4>
+    <ol class="events" id="events"></ol>
+  </section>
+
+  <p class="table-note">Keyboard: ← / → step one timestep, space plays or pauses.</p>
+
+  <footer>
+    <a href="index.html">Back to the project page</a>
+  </footer>
+
+</main>
+<script src="static/demo/episode.js"></script>
+<script>
+  // [video seconds, timestep] read from the on-screen "t = N" label (accurate to about 0.5 s).
+  // The video fast-forwards through quiet stretches and holds on events, so the mapping is
+  // piecewise linear.
+  var ANCHORS = [
+    [0,0],[0.5,2],[1.5,5],[2.5,6],[3.5,7],[4.5,8],[5.5,9],[6.5,11],[9.5,11],[10.5,12],[11.5,13],
+    [12.5,14],[13.5,17],[14.5,22],[15.5,26],[16.5,31],[17.5,35],[18.5,37],[19.5,38],[20.5,39],
+    [23.5,39],[24.5,40],[25.5,42],[28.5,42],[29.5,43],[30.5,44],[31.5,47],[32.5,51],[33.5,56],
+    [34.5,60],[35.5,65],[36.5,69],[37.5,72],[38.5,73],[39.5,74],[40.5,75],[42.5,75],[43.5,76],
+    [44.5,77],[45.5,78],[46.5,83],[47.5,87],[48.5,88],[49.5,89],[50.5,90],[52.5,90],[53.5,91],
+    [54.5,92],[55.5,93],[56.5,97],[57.5,101],[58.5,103],[59.5,104],[60.5,106],[63.5,106],[64.5,107],
+    [65.5,108],[66.5,111],[67.5,115],[68.5,120],[69.5,121],[70.5,123],[71.5,124],[74.5,124],
+    [75.5,125],[76.5,126],[77.5,129],[78.5,133],[79.5,138],[80.5,143],[81.5,147],[82.5,152],
+    [83.5,156],[84.5,161],[85.5,165],[86.5,168],[87.5,169],[88.5,170],[89.5,171],[91.5,171],
+    [92.5,172],[93.5,173],[94.5,174],[95.5,179],[96.5,184],[97.5,188],[98.5,193],[99.5,197],
+    [100.5,198],[101.5,199],[102.5,200],[105.5,200]
+  ];
+
+  var EVENTS = [
+    [11,  'new',   'Drew sits outside the bottom-right region'],
+    [39,  'ok',    'Grey sits in the bottom-right region'],
+    [42,  'other', 'Ash sits outside the bottom-right region'],
+    [75,  'new',   'Hart sits outside the bottom-right region'],
+    [90,  'new',   'Iris sits outside the bottom-right region'],
+    [106, 'other', 'Drew sits outside the bottom-right region'],
+    [124, 'ok',    'Jude sits in the bottom-right region'],
+    [171, 'ok',    'Kai sits in the bottom-right region'],
+    [200, 'ok',    'Lane sits in the bottom-right region']
+  ];
+  var KIND = { 'new': 'Norm violation (newcomer)', other: 'Norm violation (another customer)', ok: 'Norm followed (newcomer)' };
+
+  // Café layout, (row, column), from the environment description.
+  var CHAIRS = ['1,1','3,3','6,1','6,11','6,13','8,3','8,5','8,9','8,13'];
+  var DOORS = ['5,0','5,14','10,7'];
+  var GOALS = { 1: 'find a chair and sit down', 2: 'leave through the door at (5, 14)' };
+
+  var STEPS = window.EPISODE.steps;
+
+  function timeToStep(s) {
+    for (var i = 0; i < ANCHORS.length - 1; i++) {
+      var a = ANCHORS[i], b = ANCHORS[i + 1];
+      if (s < b[0]) return Math.floor(a[1] + (s - a[0]) / (b[0] - a[0]) * (b[1] - a[1]));
+    }
+    return 200;
+  }
+
+  // Earliest video time at which timestep t is on screen.
+  function stepToTime(t) {
+    if (t <= ANCHORS[0][1]) return 0;
+    for (var i = 0; i < ANCHORS.length - 1; i++) {
+      var a = ANCHORS[i], b = ANCHORS[i + 1];
+      if (b[1] > a[1] && t > a[1] && t <= b[1]) return a[0] + (t - a[1]) / (b[1] - a[1]) * (b[0] - a[0]);
+    }
+    return ANCHORS[ANCHORS.length - 1][0];
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+  function fmtPos(p) { return '(' + p[0] + ', ' + p[1] + ')'; }
+  function status(p) {
+    var k = p[0] + ',' + p[1];
+    if (CHAIRS.indexOf(k) >= 0) return 'seated';
+    if (DOORS.indexOf(k) >= 0) return 'at a door';
+    return 'walking';
+  }
+
+  var v = document.getElementById('v');
+  var slider = document.getElementById('slider');
+  var tnum = document.getElementById('tnum');
+  var playBtn = document.getElementById('play');
+  var marks = document.getElementById('marks');
+  var list = document.getElementById('events');
+  var ncEl = document.getElementById('nc');
+  var agentsEl = document.getElementById('agents');
+  var ncount = document.getElementById('ncount');
+  var reasonEl = document.getElementById('reason');
+  var beliefEl = document.getElementById('belief');
+  var confEl = document.getElementById('conf');
+  var confBar = document.getElementById('confbar');
+  var step = -1, dragging = false, wasPlaying = false;
+
+  EVENTS.forEach(function (e) {
+    var m = document.createElement('button');
+    m.type = 'button';
+    m.className = 'mark ev-' + e[1];
+    m.style.left = (e[0] / 200 * 100) + '%';
+    m.title = 't = ' + e[0] + ': ' + KIND[e[1]];
+    m.addEventListener('click', function () { seekStep(e[0]); });
+    marks.appendChild(m);
+
+    var li = document.createElement('li');
+    li.innerHTML = '<button type="button"><span class="et">t = ' + e[0] + '</span>' +
+      '<span class="ek ev-' + e[1] + '">' + KIND[e[1]] + '</span>' +
+      '<span class="ed">' + e[2] + '</span></button>';
+    li.firstChild.addEventListener('click', function () { seekStep(e[0]); });
+    list.appendChild(li);
+  });
+  var items = list.children;
+
+  function renderPanels(t) {
+    var s = STEPS[t] || {};
+    var nc = s.nc;
+    var violators = s.viol || [];
+
+    if (nc) {
+      var flag = violators.indexOf(nc.name) >= 0 ? '<span class="tag tag-bad">sanctioned this step</span>' : '';
+      ncEl.innerHTML =
+        '<p class="nc-name"><span class="star">★</span>' + esc(nc.name) + flag + '</p>' +
+        '<p class="nc-sub">played by Claude Opus 5</p>' +
+        '<dl class="kv">' +
+        '<dt>Position</dt><dd>' + fmtPos(nc.pos) + '</dd>' +
+        '<dt>Action</dt><dd>' + esc(nc.action) + '</dd>' +
+        '<dt>Goal</dt><dd>' + nc.goal + ' of 2: ' + GOALS[nc.goal] + '</dd>' +
+        '<dt>Target</dt><dd>' + fmtPos(nc.target) + '</dd>' +
+        (nc.reward != null ? '<dt>Reward so far</dt><dd>' + nc.reward.toFixed(1) + '</dd>' : '') +
+        '</dl>';
+      reasonEl.textContent = nc.reasoning;
+      beliefEl.textContent = nc.belief;
+      confEl.textContent = Math.round(nc.conf * 100) + '%';
+      confBar.style.width = (nc.conf * 100) + '%';
+    } else {
+      ncEl.innerHTML = '<p class="muted">No newcomer yet. Drew, the first newcomer, enters at t = 9.</p>';
+      reasonEl.innerHTML = '<span class="muted">The newcomer has not entered yet.</span>';
+      beliefEl.innerHTML = '<span class="muted">No guess yet.</span>';
+      confEl.textContent = '';
+      confBar.style.width = '0';
+    }
+
+    var agents = (s.agents || []).slice().sort(function (a, b) { return (b[3] - a[3]) || a[0].localeCompare(b[0]); });
+    ncount.textContent = agents.length ? '(' + agents.length + ')' : '';
+    agentsEl.innerHTML = agents.length ? agents.map(function (a) {
+      var bad = violators.indexOf(a[0]) >= 0;
+      return '<li' + (a[3] ? ' class="is-nc"' : '') + '>' +
+        '<i class="g-' + a[1] + '"></i>' +
+        '<span class="an">' + esc(a[0]) + (a[3] ? ' <span class="star">★</span>' : '') + '</span>' +
+        '<span class="ap">' + fmtPos(a[2]) + '</span>' +
+        '<span class="as">' + (bad ? '<span class="tag tag-bad">violates</span>' : status(a[2])) + '</span></li>';
+    }).join('') : '<li class="muted">The café is empty.</li>';
+  }
+
+  function render(t) {
+    slider.value = t;
+    tnum.textContent = t;
+    slider.style.setProperty('--p', (t / 200 * 100) + '%');
+    if (t === step) return;
+    step = t;
+    renderPanels(t);
+    for (var i = 0; i < EVENTS.length; i++) {
+      var next = EVENTS[i + 1];
+      items[i].classList.toggle('past', EVENTS[i][0] <= t);
+      items[i].classList.toggle('cur', EVENTS[i][0] <= t && (!next || next[0] > t));
+    }
+  }
+
+  function seekStep(t) {
+    t = Math.max(0, Math.min(200, t));
+    v.currentTime = stepToTime(t);
+    render(t);
+  }
+
+  v.addEventListener('timeupdate', function () { if (!dragging) render(timeToStep(v.currentTime)); });
+  v.addEventListener('play', function () { playBtn.textContent = 'Pause'; });
+  v.addEventListener('pause', function () { playBtn.textContent = 'Play'; });
+  v.addEventListener('ended', function () { playBtn.textContent = 'Replay'; });
+
+  function toggle() { if (v.paused || v.ended) v.play(); else v.pause(); }
+  playBtn.addEventListener('click', toggle);
+  v.addEventListener('click', toggle);
+
+  slider.addEventListener('pointerdown', function () { dragging = true; wasPlaying = !v.paused; v.pause(); });
+  slider.addEventListener('input', function () { seekStep(+slider.value); });
+  slider.addEventListener('change', function () {
+    dragging = false;
+    if (wasPlaying) v.play();
+    wasPlaying = false;
+  });
+
+  document.getElementById('prev').addEventListener('click', function () { v.pause(); seekStep(step - 1); });
+  document.getElementById('next').addEventListener('click', function () { v.pause(); seekStep(step + 1); });
+
+  document.querySelectorAll('.speed button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      v.playbackRate = +b.dataset.rate;
+      document.querySelectorAll('.speed button').forEach(function (o) { o.classList.toggle('on', o === b); });
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target === slider) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); v.pause(); seekStep(step - 1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); v.pause(); seekStep(step + 1); }
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); toggle(); }
+  });
+
+  render(0);
+</script>
+</body>
+</html>
