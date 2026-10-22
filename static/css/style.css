@@ -426,10 +426,10 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
 .g-blue { background: #3d6fc4; }
 
 .reason { white-space: pre-wrap; max-height: 260px; overflow-y: auto; }
-.truth {
-  margin: 0 0 16px !important;
-  padding: 8px 12px;
-  border-left: 3px solid #2e8a4a;
+.stack { display: grid; gap: 16px; align-content: start; }
+.panel.truth {
+  border-color: #b9d9c2;
+  border-left: 4px solid #2e8a4a;
   background: #eef6f0;
   font-size: 16px;
   font-weight: 600;
@@ -437,6 +437,7 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
 }
 .truth-label {
   display: block;
+  margin-bottom: 2px;
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.06em;
