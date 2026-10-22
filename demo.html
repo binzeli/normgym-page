@@ -25,6 +25,22 @@
   </p>
 
   <div class="dash">
+    <div class="side">
+      <section class="panel">
+        <h4>Newcomer</h4>
+        <div id="nc"></div>
+      </section>
+      <section class="panel">
+        <h4>Customers in the café <span class="count" id="ncount"></span></h4>
+        <ul class="agents" id="agents"></ul>
+        <p class="groups">
+          <span><i class="g-green"></i>green</span>
+          <span><i class="g-orange"></i>orange</span>
+          <span><i class="g-blue"></i>blue</span>
+          social groups
+        </p>
+      </section>
+    </div>
     <div class="player">
       <video id="v" muted playsinline preload="auto" poster="static/video/poster.jpg">
         <source src="static/video/demo.mp4" type="video/mp4">
@@ -54,22 +70,11 @@
       </div>
     </div>
 
-    <div class="side">
-      <section class="panel">
-        <h4>Newcomer</h4>
-        <div id="nc"></div>
-      </section>
-      <section class="panel">
-        <h4>Customers in the café <span class="count" id="ncount"></span></h4>
-        <ul class="agents" id="agents"></ul>
-        <p class="groups">
-          <span><i class="g-green"></i>green</span>
-          <span><i class="g-orange"></i>orange</span>
-          <span><i class="g-blue"></i>blue</span>
-          social groups
-        </p>
-      </section>
-    </div>
+    <section class="panel events-panel">
+      <h4>Events</h4>
+      <ol class="events" id="events"></ol>
+    </section>
+
   </div>
 
   <div class="dash-row">
@@ -84,16 +89,7 @@
     </section>
   </div>
 
-  <section class="panel">
-    <h4>Events</h4>
-    <ol class="events" id="events"></ol>
-  </section>
-
   <p class="table-note">Keyboard: ← / → step one timestep, space plays or pauses.</p>
-
-  <footer>
-    <a href="index.html">Back to the project page</a>
-  </footer>
 
 </main>
 <script src="static/demo/episode.js"></script>
@@ -126,7 +122,7 @@
     [171, 'ok',    'Kai sits in the bottom-right region'],
     [200, 'ok',    'Lane sits in the bottom-right region']
   ];
-  var KIND = { 'new': 'Norm violation (newcomer)', other: 'Norm violation (another customer)', ok: 'Norm followed (newcomer)' };
+  var KIND = { 'new': 'Newcomer violates', other: 'Another customer violates', ok: 'Newcomer follows' };
 
   // Café layout, (row, column), from the environment description.
   var CHAIRS = ['1,1','3,3','6,1','6,11','6,13','8,3','8,5','8,9','8,13'];
@@ -212,7 +208,6 @@
         '<dt>Action</dt><dd>' + esc(nc.action) + '</dd>' +
         '<dt>Goal</dt><dd>' + nc.goal + ' of 2: ' + GOALS[nc.goal] + '</dd>' +
         '<dt>Target</dt><dd>' + fmtPos(nc.target) + '</dd>' +
-        (nc.reward != null ? '<dt>Reward so far</dt><dd>' + nc.reward.toFixed(1) + '</dd>' : '') +
         '</dl>';
       reasonEl.textContent = nc.reasoning;
       beliefEl.textContent = nc.belief;
