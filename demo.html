@@ -42,8 +42,8 @@
       </section>
     </div>
     <div class="player">
-      <video id="v" muted playsinline preload="auto" poster="static/video/poster.jpg">
-        <source src="static/video/demo.mp4" type="video/mp4">
+      <video id="v" muted playsinline preload="auto" poster="static/video/demo_full_poster.jpg">
+        <source src="static/video/demo_full.mp4" type="video/mp4">
       </video>
 
       <div class="scrub">
@@ -100,22 +100,10 @@
 </main>
 <script src="static/demo/episode.js"></script>
 <script>
-  // [video seconds, timestep] read from the on-screen "t = N" label (accurate to about 0.5 s).
-  // The video fast-forwards through quiet stretches and holds on events, so the mapping is
-  // piecewise linear.
-  var ANCHORS = [
-    [0,0],[0.5,2],[1.5,5],[2.5,6],[3.5,7],[4.5,8],[5.5,9],[6.5,11],[9.5,11],[10.5,12],[11.5,13],
-    [12.5,14],[13.5,17],[14.5,22],[15.5,26],[16.5,31],[17.5,35],[18.5,37],[19.5,38],[20.5,39],
-    [23.5,39],[24.5,40],[25.5,42],[28.5,42],[29.5,43],[30.5,44],[31.5,47],[32.5,51],[33.5,56],
-    [34.5,60],[35.5,65],[36.5,69],[37.5,72],[38.5,73],[39.5,74],[40.5,75],[42.5,75],[43.5,76],
-    [44.5,77],[45.5,78],[46.5,83],[47.5,87],[48.5,88],[49.5,89],[50.5,90],[52.5,90],[53.5,91],
-    [54.5,92],[55.5,93],[56.5,97],[57.5,101],[58.5,103],[59.5,104],[60.5,106],[63.5,106],[64.5,107],
-    [65.5,108],[66.5,111],[67.5,115],[68.5,120],[69.5,121],[70.5,123],[71.5,124],[74.5,124],
-    [75.5,125],[76.5,126],[77.5,129],[78.5,133],[79.5,138],[80.5,143],[81.5,147],[82.5,152],
-    [83.5,156],[84.5,161],[85.5,165],[86.5,168],[87.5,169],[88.5,170],[89.5,171],[91.5,171],
-    [92.5,172],[93.5,173],[94.5,174],[95.5,179],[96.5,184],[97.5,188],[98.5,193],[99.5,197],
-    [100.5,198],[101.5,199],[102.5,200],[105.5,200]
-  ];
+  // [video seconds, timestep] read from the on-screen "t = N" label. The video plays at a
+  // constant 2.5 timesteps per second (t = 1 at 0 s, t = 200 at 79.5 s) and then holds on the
+  // final frame.
+  var ANCHORS = [[0,1.25],[79.5,200],[82,200]];
 
   var EVENTS = [
     [11,  'new',   'Drew sits outside the bottom-right region'],
