@@ -123,6 +123,7 @@ video {
 }
 
 figure { margin: 26px 0 30px; }
+.intro-video { margin: 22px 0 18px; }
 
 
 
@@ -413,6 +414,7 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
   font-variant-numeric: tabular-nums;
 }
 .agents li:first-child { border-top: 0; }
+.agents li.muted { display: block; }
 .agents li.is-nc .an { font-weight: 600; }
 .agents i, .groups i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .ap { color: var(--muted); }
@@ -424,6 +426,17 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
 .g-green { background: #3f9a4e; }
 .g-orange { background: #e0892b; }
 .g-blue { background: #3d6fc4; }
+
+/* Panel tints: amber for the newcomer's own state, blue for customers, purple for events */
+.panel.tint { border-color: var(--tint-rule); border-left: 4px solid var(--tint-accent); background: var(--tint-bg); }
+.panel.tint h4 { color: var(--tint-head); }
+.tint-nc { --tint-bg: #fbf6e9; --tint-rule: #eadcb2; --tint-accent: #c9971c; --tint-head: #8a6508; }
+.tint-cust { --tint-bg: #eff4fb; --tint-rule: #c9d7ec; --tint-accent: #3d6fc4; --tint-head: #2f5597; }
+.tint-ev { --tint-bg: #f5f1fa; --tint-rule: #dbd0ec; --tint-accent: #6b4fa3; --tint-head: #563d88; }
+.panel.tint .agents li, .panel.tint .events li { border-color: var(--tint-rule); }
+.panel.tint .events button:hover, .panel.tint .events li.cur button { background: rgba(0, 0, 0, 0.05); }
+.panel.tint .conf-bar { background: var(--tint-rule); }
+.panel.tint-nc .conf-bar div { background: var(--tint-accent); }
 
 .reason { white-space: pre-wrap; max-height: 260px; overflow-y: auto; }
 .stack { display: grid; gap: 16px; align-content: start; }

@@ -26,11 +26,11 @@
 
   <div class="dash">
     <div class="side">
-      <section class="panel">
+      <section class="panel tint tint-nc">
         <h4>Newcomer</h4>
         <div id="nc"></div>
       </section>
-      <section class="panel">
+      <section class="panel tint tint-cust">
         <h4>Customers in the café <span class="count" id="ncount"></span></h4>
         <ul class="agents" id="agents"></ul>
         <p class="groups">
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <section class="panel events-panel">
+    <section class="panel tint tint-ev events-panel">
       <h4>Events</h4>
       <ol class="events" id="events"></ol>
     </section>
@@ -78,7 +78,7 @@
   </div>
 
   <div class="dash-row">
-    <section class="panel">
+    <section class="panel tint tint-nc">
       <h4>Reasoning at this step</h4>
       <p class="reason" id="reason"></p>
     </section>
@@ -87,7 +87,7 @@
       <span class="truth-label">Ground-truth norm <i>(hidden from the newcomer)</i></span>
       Customers may only sit in the bottom-right region of the café.
     </section>
-    <section class="panel">
+    <section class="panel tint tint-nc">
       <h4>Newcomer’s current guess at the norm</h4>
       <p class="belief" id="belief"></p>
       <div class="conf"><span>Confidence</span><div class="conf-bar"><div id="confbar"></div></div><b id="conf"></b></div>

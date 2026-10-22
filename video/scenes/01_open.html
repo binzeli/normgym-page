@@ -1,0 +1,575 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #fff; }
+  svg { position: absolute; inset: 0; }
+  .type { position: absolute; left: 0; right: 0; text-align: center; font-family: 'IBM Plex Mono', monospace;
+          font-weight: 500; color: #222; white-space: pre; }
+  #intro { top: 400px; left: 50%; right: auto; transform: translateX(-50%); text-align: left; font-size: 64px; line-height: 1.6; }
+  #outro { top: 230px; font-size: 76px; font-weight: 600; }
+  .cursor { display: inline-block; width: 0.55em; height: 1em; background: #222; vertical-align: -0.12em; margin-left: 4px; }
+  /* narrative caption at the top, speech subtitles at the bottom */
+  #cap { position: absolute; left: 0; right: 0; top: 64px; text-align: center; font-family: 'IBM Plex Mono', monospace;
+         font-weight: 500; font-size: 44px; color: #2a2622; }
+</style>
+</head>
+<body>
+<svg id="svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs id="defs">
+    <filter id="blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="blur12" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12"/></filter>
+    <radialGradient id="vignette" cx="50%" cy="45%" r="75%">
+      <stop offset="60%" stop-color="#2a1d10" stop-opacity="0"/><stop offset="100%" stop-color="#2a1d10" stop-opacity="0.22"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#2a1d10" flood-opacity="0.18"/></filter>
+    <radialGradient id="glow"><stop offset="0%" stop-color="#fff" stop-opacity="0.95"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g id="world"></g>
+  <g id="front"></g>
+  <rect id="fade" x="0" y="0" width="1920" height="1080" fill="#fff" opacity="0"/>
+  <g id="top"></g>
+</svg>
+<div style="position:absolute;opacity:0;font-family:'IBM Plex Sans'">preload <i>preload</i></div>
+<div id="intro" class="type"></div>
+<div id="cap"></div>
+<div id="outro" class="type"></div>
+<script>
+window.DURATION = 36.7;
+
+// ---------- helpers ----------
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const win = (t, a, b, d = 0.3) => smooth(p(t, a, a + d)) * (1 - smooth(p(t, b - d, b)));
+
+// Colour helpers: shade a hex colour, and build a left-lit gradient for a fill (light comes from the window, at left).
+function mix(hex, to, f) {
+  const a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16);
+  const ch = (v, s) => (v >> s) & 255;
+  const c = [16, 8, 0].map((s) => Math.round(ch(a, s) + (ch(b, s) - ch(a, s)) * f));
+  return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+const defs = document.getElementById('defs');
+const gcache = {};
+// Flat fills (kept as a function so shapes read the same if a subtle shade is ever wanted).
+const lit = (hex) => hex;
+const shadow = (parent, cx, cy, rx, ry = 10, o = 0.22) => el('ellipse', { cx, cy, rx, ry, fill: '#000', opacity: o * 0.45 }, parent);
+
+// ---------- people (realistic proportions, about 7.5 heads tall) ----------
+function makePerson(o) {
+  const g = el('g', {});
+  const shadowEl = shadow(g, 0, 2, 58, 9);
+  const body = el('g', {}, g);
+  const skin = o.skin, top = o.top, pants = o.pants || '#4a4744';
+  const legs = [];
+  for (const x of [-17, 17]) {
+    const leg = el('g', {}, body);
+    el('path', { d: 'M -18 0 L 18 0 L 13 148 L -13 148 Z', fill: lit(pants), transform: `translate(${x} -165)` }, leg);
+    el('path', { d: `M ${x - 15} -12 Q ${x - 16} -24 ${x - 4} -24 L ${x + 12} -22 Q ${x + 24} -16 ${x + 22} -4 L ${x - 14} -2 Z`, fill: o.shoes || '#3a332d' }, leg);
+    legs.push({ g: leg, x });
+  }
+  const upper = el('g', { transform: 'translate(0 40)' }, body);
+  const back = el('g', {}, upper);
+  if (o.hair === 'bob' || o.hair === 'curly' || o.hair === 'long') {
+    el('ellipse', { cx: 0, cy: o.hair === 'long' ? -396 : -410, rx: 31, ry: o.hair === 'long' ? 52 : 37, fill: lit(o.hairColor, 'h', 0.25) }, back);
+  }
+  // torso
+  el('path', { d: 'M -52 -338 Q -53 -366 -28 -368 L 28 -368 Q 53 -366 52 -338 L 45 -232 Q 44 -196 0 -196 Q -44 -196 -45 -232 Z', fill: lit(top) }, upper);
+  if (o.cardigan) {
+    el('path', { d: 'M -13 -368 L 13 -368 L 10 -200 L -10 -200 Z', fill: lit(o.cardigan) }, upper);
+    for (const y of [-330, -290, -250]) el('circle', { cx: 15, cy: y, r: 2.6, fill: mix(top, '#1a120a', 0.35) }, upper);
+  }
+  if (o.vneck) el('path', { d: 'M -13 -368 L 0 -344 L 13 -368 Z', fill: lit(skin) }, upper);
+  if (o.badge) {
+    el('path', { d: 'M -14 -366 L -6 -300 M 14 -366 L 6 -300', stroke: '#c9a227', 'stroke-width': 2.2, fill: 'none' }, upper);
+    el('rect', { x: -11, y: -302, width: 22, height: 28, rx: 3, fill: '#fafafa' }, upper);
+    el('rect', { x: -7, y: -296, width: 14, height: 4, rx: 1, fill: '#4f8fb3' }, upper);
+  }
+  // arms (shoulder pivots)
+  const arms = [];
+  // two segments (upper arm + forearm) so the elbow can bend
+  for (const x of [-47, 47]) {
+    const arm = el('g', {}, upper);
+    const limb = o.shortSleeve ? skin : top;
+    el('path', { d: 'M -12 0 Q -13 -10 0 -10 Q 13 -10 12 0 L 10 68 L -10 68 Z', fill: limb }, arm);
+    if (o.shortSleeve) el('path', { d: 'M -12.5 0 Q -13 -11 0 -11 Q 13 -11 12.5 0 L 12 38 L -12 38 Z', fill: top }, arm);
+    const fore = el('g', {}, arm);
+    el('circle', { cx: 0, cy: 0, r: 9.5, fill: limb }, fore);
+    el('path', { d: 'M -9.5 0 L 9.5 0 L 7.5 60 L -7.5 60 Z', fill: limb }, fore);
+    el('ellipse', { cx: 0, cy: 67, rx: 8.5, ry: 11, fill: skin }, fore);
+    arms.push({ g: arm, fore, x });
+  }
+  const UPPER = 64, FORE = 67;
+  // neck + head
+  el('rect', { x: -9, y: -388, width: 18, height: 26, fill: mix(skin, '#1a120a', 0.12) }, upper);
+  const head = el('g', {}, upper);
+  for (const x of [-25, 25]) el('ellipse', { cx: x, cy: -410, rx: 4.5, ry: 7, fill: mix(skin, '#1a120a', 0.08) }, head);
+  el('ellipse', { cx: 0, cy: -412, rx: 25, ry: 31, fill: lit(skin, 'h', 0.14) }, head);
+  const cheeks = [-13, 13].map((x) => el('ellipse', { cx: x, cy: -399, rx: 6.5, ry: 4, fill: '#e07f7f', opacity: 0 }, head));
+  const eyes = el('g', {}, head);
+  for (const x of [-9, 9]) el('ellipse', { cx: x, cy: -414, rx: 2.4, ry: 2.8, fill: '#2b2420' }, eyes);
+  const brows = el('path', { d: '', stroke: mix(o.hairColor, '#1a120a', 0.3), 'stroke-width': 2.2, 'stroke-linecap': 'round', fill: 'none' }, head);
+  el('path', { d: 'M 1 -410 Q 4 -401 0 -398', stroke: mix(skin, '#1a120a', 0.3), 'stroke-width': 1.6, fill: 'none', 'stroke-linecap': 'round' }, head);
+  const mouth = el('path', { d: '', stroke: '#7a3b33', 'stroke-width': 2.2, 'stroke-linecap': 'round', fill: 'none' }, head);
+  if (o.glasses) {
+    for (const x of [-9, 9]) el('circle', { cx: x, cy: -414, r: 7.5, fill: 'none', stroke: '#5b544e', 'stroke-width': 1.6 }, head);
+    el('path', { d: 'M -1.5 -415 L 1.5 -415', stroke: '#5b544e', 'stroke-width': 1.6 }, head);
+  }
+  const hc = lit(o.hairColor, 'h', 0.25);
+  const HAIR = {
+    short: 'M -26 -414 Q -28 -447 0 -448 Q 28 -447 26 -414 Q 22 -432 0 -434 Q -20 -432 -26 -414 Z',
+    side: 'M -27 -408 Q -31 -452 2 -451 Q 31 -449 27 -412 Q 23 -429 9 -433 Q -12 -438 -23 -424 Q -26 -417 -27 -408 Z',
+    bob: 'M -27 -416 Q -25 -448 0 -448 Q 25 -448 27 -416 Q 12 -434 -27 -416 Z',
+    long: 'M -27 -416 Q -25 -448 0 -448 Q 25 -448 27 -416 Q 0 -430 -27 -416 Z',
+    curly: 'M -30 -418 Q -36 -440 -18 -450 Q 0 -462 18 -450 Q 36 -440 30 -418 Q 14 -432 -30 -418 Z',
+    bald: 'M -26 -404 Q -30 -424 -22 -432 L -18 -404 Z M 26 -404 Q 30 -424 22 -432 L 18 -404 Z',
+  };
+  el('path', { d: HAIR[o.hair || 'short'], fill: hc }, head);
+  if (o.bun) el('circle', { cx: 0, cy: -452, r: 11, fill: hc }, head);
+  const MOUTH = {
+    neutral: 'M -7 -392 Q 0 -390.5 7 -392',
+    smile: 'M -8 -393 Q 0 -387 8 -393',
+    open: 'M -4 -393 Q 0 -386 4 -393 Q 0 -395 -4 -393 Z',
+    talk: 'M -6 -393 Q 0 -387 6 -393 Q 0 -394 -6 -393 Z',
+    grin: 'M -9 -394 Q 0 -384 9 -394 Q 0 -392 -9 -394 Z',
+  };
+  const BROWS = { none: 'M -14 -424 L -5 -425 M 14 -424 L 5 -425', up: 'M -14 -428 L -5 -430 M 14 -428 L 5 -430', soft: 'M -14 -423 L -5 -426 M 14 -423 L 5 -426' };
+  // seated legs: thighs coming toward the viewer, then shins down to the floor (drawn in front of the seat)
+  const lap = el('g', {});
+  for (const x of [-19, 19]) {
+    el('rect', { x: x - 17, y: -94, width: 34, height: 34, rx: 13, fill: lit(mix(pants, '#ffffff', 0.06), 'v', 0.2) }, lap);
+    el('rect', { x: x - 13, y: -70, width: 26, height: 58, rx: 6, fill: lit(pants) }, lap);
+    el('path', { d: `M ${x - 15} -4 Q ${x - 16} -18 ${x - 4} -18 L ${x + 10} -17 Q ${x + 20} -12 ${x + 18} 0 L ${x - 14} 2 Z`, fill: o.shoes || '#3a332d' }, lap);
+  }
+  return {
+    g, lap,
+    set(s) {
+      const sc = s.scale ?? 1;
+      const walking = s.walk != null;
+      const wave = walking ? Math.sin(s.walk) : 0;
+      const bob = walking ? -Math.abs(Math.cos(s.walk)) * 3 : 0;
+      g.setAttribute('transform', `translate(${s.x} ${s.y + bob}) scale(${sc})`);
+      g.setAttribute('opacity', s.opacity ?? 1);
+      body.setAttribute('transform', s.seated ? 'translate(0 80)' : '');
+      lap.setAttribute('transform', `translate(${s.x} ${s.y}) scale(${sc})`);
+      lap.style.display = s.seated ? '' : 'none';
+      lap.setAttribute('opacity', s.opacity ?? 1);
+      shadowEl.setAttribute('opacity', s.seated ? 0 : 0.22);
+      legs.forEach((l, i) => {
+        l.g.setAttribute('transform', `rotate(${(i ? -1 : 1) * 16 * wave} ${l.x} -165)`);
+        l.g.style.display = s.seated ? 'none' : '';
+      });
+      // rest pose: slight elbow bend standing, hands on the lap when seated
+      const rest = s.seated ? [-10, 10] : [4, -4];
+      const bendRest = s.seated ? [-24, 24] : [-7, 7];
+      const aL = (s.armL ?? rest[0]) + (walking ? -10 * wave : 0);
+      const aR = (s.armR ?? rest[1]) + (walking ? 10 * wave : 0);
+      const bL = s.bendL ?? (s.armL != null ? 0 : bendRest[0]) + (walking ? -6 * Math.max(0, wave) : 0);
+      const bR = s.bendR ?? (s.armR != null ? 0 : bendRest[1]) + (walking ? 6 * Math.max(0, -wave) : 0);
+      arms[0].g.setAttribute('transform', `translate(${arms[0].x} -352) rotate(${aL})`);
+      arms[1].g.setAttribute('transform', `translate(${arms[1].x} -352) rotate(${aR})`);
+      arms[0].fore.setAttribute('transform', `translate(0 ${UPPER}) rotate(${bL})`);
+      arms[1].fore.setAttribute('transform', `translate(0 ${UPPER}) rotate(${bR})`);
+      head.setAttribute('transform', `rotate(${s.tilt ?? 0} 0 -385) translate(0 -385) scale(1.1) translate(0 385)`);
+      eyes.setAttribute('transform', `translate(${(s.look ?? 0) * 2.5} ${s.lookY ?? 0})`);
+      const m = s.mouth || 'neutral';
+      mouth.setAttribute('d', MOUTH[m]);
+      mouth.setAttribute('fill', m === 'open' || m === 'talk' || m === 'grin' ? '#7a3b33' : 'none');
+      brows.setAttribute('d', BROWS[s.brows || 'none']);
+      cheeks.forEach((c) => c.setAttribute('opacity', 0.5 * (s.blush ?? 0)));
+    },
+    // Position of a hand for a given arm angle (degrees), for holding props.
+    hand(s, side, ang, bend = 0) {
+      const r1 = (ang * Math.PI) / 180, r2 = ((ang + bend) * Math.PI) / 180;
+      return [s.x + (side ? 47 : -47) - UPPER * Math.sin(r1) - FORE * Math.sin(r2), s.y - 312 + UPPER * Math.cos(r1) + FORE * Math.cos(r2)];
+    },
+  };
+}
+
+function makeRobot() {
+  const g = el('g', {});
+  shadow(g, 0, 2, 58, 9);
+  for (const x of [-17, 17]) {
+    el('path', { d: 'M -15 0 L 15 0 L 12 146 L -12 146 Z', fill: lit('#dfe4ea'), transform: `translate(${x} -165)` }, g);
+    el('ellipse', { cx: x, cy: -92, rx: 13, ry: 9, fill: '#aeb7c2' }, g);
+    el('path', { d: `M ${x - 16} -4 Q ${x - 16} -22 ${x} -22 Q ${x + 18} -22 ${x + 20} -4 Z`, fill: '#3b4048' }, g);
+  }
+  const up = el('g', { transform: 'translate(0 40)' }, g);
+  for (const x of [-50, 50]) {
+    el('path', { d: 'M -11 -340 L 11 -340 L 9 -222 L -9 -222 Z', fill: lit('#e6eaef'), transform: `translate(${x} 0)` }, up);
+    el('ellipse', { cx: x, cy: -282, rx: 10, ry: 7, fill: '#aeb7c2' }, up);
+    el('ellipse', { cx: x, cy: -214, rx: 9, ry: 12, fill: '#3b4048' }, up);
+    el('circle', { cx: x, cy: -346, r: 15, fill: lit('#c9d0d8') }, up);
+  }
+  el('path', { d: 'M -52 -338 Q -53 -366 -28 -368 L 28 -368 Q 53 -366 52 -338 L 45 -232 Q 44 -196 0 -196 Q -44 -196 -45 -232 Z', fill: lit('#f1f3f6', 'h', 0.24) }, up);
+  el('path', { d: 'M -30 -350 Q 0 -340 30 -350 L 24 -262 Q 0 -252 -24 -262 Z', fill: '#e2e7ed' }, up);
+  el('circle', { cx: 0, cy: -300, r: 9, fill: '#7fd8f5', opacity: 0.85 }, up);
+  el('rect', { x: 14, y: -286, width: 20, height: 26, rx: 3, fill: '#fafafa' }, up);
+  el('rect', { x: 18, y: -280, width: 12, height: 4, rx: 1, fill: '#4f8fb3' }, up);
+  el('rect', { x: -9, y: -388, width: 18, height: 24, rx: 4, fill: '#9aa3ad' }, up);
+  const hd = el('g', { transform: 'translate(0 -385) scale(1.1) translate(0 385)' }, up);
+  el('rect', { x: -28, y: -446, width: 56, height: 64, rx: 24, fill: lit('#f1f3f6', 'h', 0.22) }, hd);
+  el('rect', { x: -22, y: -428, width: 44, height: 24, rx: 12, fill: '#1c232c' }, hd);
+  for (const x of [-9, 9]) el('ellipse', { cx: x, cy: -416, rx: 3.6, ry: 3, fill: '#8fe6ff' }, hd);
+  for (const x of [-30, 30]) el('rect', { x: x - 4, y: -424, width: 8, height: 18, rx: 4, fill: '#c9d0d8' }, hd);
+  return g;
+}
+
+// ---------- furniture & props (no outlines; soft shading) ----------
+function armchair(x, color, seatY = 705) {
+  const backG = el('g', {});
+  shadow(backG, x, 792, 130, 12, 0.25);
+  el('path', { d: `M ${x - 100} ${seatY} L ${x - 100} 585 Q ${x - 100} 548 ${x - 60} 546 L ${x + 60} 546 Q ${x + 100} 548 ${x + 100} 585 L ${x + 100} ${seatY} Z`, fill: lit(color, 'h', 0.22) }, backG);
+  el('path', { d: `M ${x - 84} ${seatY} L ${x - 84} 596 Q ${x - 84} 568 ${x - 54} 566 L ${x + 54} 566 Q ${x + 84} 568 ${x + 84} 596 L ${x + 84} ${seatY} Z`, fill: mix(color, '#1a120a', 0.08) }, backG);
+  const frontG = el('g', {});
+  el('rect', { x: x - 98, y: seatY - 8, width: 196, height: 34, rx: 14, fill: lit(mix(color, '#ffffff', 0.08), 'v', 0.18) }, frontG);
+  el('rect', { x: x - 100, y: seatY + 20, width: 200, height: 62, rx: 8, fill: lit(color, 'v', 0.25) }, frontG);
+  for (const dx of [-122, 82]) el('rect', { x: x + dx, y: 640, width: 40, height: 142, rx: 18, fill: lit(mix(color, '#1a120a', 0.06), 'h', 0.25) }, frontG);
+  for (const dx of [-110, 96]) el('rect', { x: x + dx, y: 780, width: 12, height: 12, rx: 2, fill: '#4a3626' }, frontG);
+  return { back: backG, front: frontG };
+}
+
+// ---------- scene ----------
+const world = document.getElementById('world');
+const frontL = document.getElementById('front');
+const topL = document.getElementById('top');
+const W0 = -100, W1 = 4400;
+// walls: TV room (cooler, left) and lounge (warmer, right)
+el('rect', { x: W0, y: 0, width: 2300, height: 645, fill: '#f4f4f2' }, world);
+el('rect', { x: 2200, y: 0, width: 2200, height: 645, fill: '#f6f4ef' }, world);
+el('rect', { x: W0, y: 470, width: W1 - W0, height: 160, fill: '#000', opacity: 0.025 }, world);
+el('rect', { x: W0, y: 464, width: W1 - W0, height: 8, fill: '#e4e2dd' }, world);
+el('rect', { x: W0, y: 472, width: W1 - W0, height: 3, fill: '#000', opacity: 0.06 }, world);
+// floor with planks that widen toward the viewer
+el('rect', { x: W0, y: 640, width: W1 - W0, height: 440, fill: '#e2d4bc' }, world);
+for (const y of [652, 668, 688, 714, 746, 786, 834, 892, 962, 1046]) el('rect', { x: W0, y, width: W1 - W0, height: 2, fill: '#000', opacity: 0.06 }, world);
+el('rect', { x: W0, y: 626, width: W1 - W0, height: 18, fill: '#e7e4dd' }, world);
+el('rect', { x: W0, y: 642, width: W1 - W0, height: 4, fill: '#000', opacity: 0.08 }, world);
+// doorway between the rooms
+el('rect', { x: 2150, y: 0, width: 100, height: 644, fill: '#e9e7e2' }, world);
+
+// TV room: door
+el('rect', { x: 140, y: 312, width: 220, height: 332, fill: '#e9e2d6' }, world);
+el('rect', { x: 152, y: 322, width: 196, height: 322, fill: '#3e342b' }, world);
+const doorPanel = el('g', {}, world);
+el('rect', { x: 152, y: 322, width: 196, height: 322, fill: lit('#a77b52', 'h', 0.22) }, doorPanel);
+for (const y of [348, 492]) el('rect', { x: 174, y, width: 152, height: 122, rx: 3, fill: '#000', opacity: 0.07 }, doorPanel);
+el('circle', { cx: 324, cy: 478, r: 7, fill: lit('#c8a24a', 'h', 0.3) }, doorPanel);
+// framed print + floor lamp + clock
+el('rect', { x: 1420, y: 210, width: 190, height: 140, fill: '#7b5b3d' }, world);
+el('rect', { x: 1428, y: 218, width: 174, height: 124, fill: '#f6f2ea' }, world);
+el('rect', { x: 1446, y: 236, width: 138, height: 88, fill: lit('#a9bfae', 'v', 0.25) }, world);
+el('path', { d: 'M 1446 324 L 1446 296 Q 1490 272 1530 298 Q 1560 286 1584 300 L 1584 324 Z', fill: '#7f9b81' }, world);
+el('circle', { cx: 1780, cy: 230, r: 38, fill: '#fbfaf7' }, world);
+el('circle', { cx: 1780, cy: 230, r: 38, fill: 'none', stroke: '#8a8178', 'stroke-width': 4 }, world);
+el('path', { d: 'M 1780 230 L 1780 204 M 1780 230 L 1796 238', stroke: '#3b3530', 'stroke-width': 3, 'stroke-linecap': 'round' }, world);
+el('rect', { x: 2037, y: 400, width: 6, height: 380, fill: '#6b625a' }, world);
+el('path', { d: 'M 1998 404 L 2082 404 L 2066 340 L 2014 340 Z', fill: lit('#efe3c8', 'h', 0.15) }, world);
+shadow(world, 2040, 784, 40, 7, 0.2);
+// TV console + TV
+shadow(world, 800, 768, 160, 10, 0.25);
+el('rect', { x: 660, y: 640, width: 280, height: 120, rx: 6, fill: lit('#8c6a4c', 'h', 0.25) }, world);
+el('rect', { x: 660, y: 640, width: 280, height: 10, rx: 4, fill: '#a8835f' }, world);
+el('rect', { x: 798, y: 656, width: 4, height: 96, fill: '#000', opacity: 0.12 }, world);
+el('rect', { x: 790, y: 612, width: 20, height: 30, fill: '#2a2b2e' }, world);
+el('rect', { x: 760, y: 636, width: 80, height: 6, rx: 3, fill: '#2a2b2e' }, world);
+el('rect', { x: 636, y: 432, width: 328, height: 188, rx: 6, fill: '#1c1d20' }, world);
+const SCR = { x: 644, y: 440, w: 312, h: 172 };
+const scrOff = el('g', {}, world);
+el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, fill: lit('#2c3138', 'v', 0.3) }, scrOff);
+el('path', { d: `M ${SCR.x} ${SCR.y} L ${SCR.x + 120} ${SCR.y} L ${SCR.x + 40} ${SCR.y + SCR.h} L ${SCR.x} ${SCR.y + SCR.h} Z`, fill: '#fff', opacity: 0.05 }, scrOff);
+// wrong channel: a loud game show
+const chWrong = el('g', {}, world);
+el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, fill: lit('#7a2f8f', 'v', 0.35) }, chWrong);
+for (const [cx, c] of [[700, '#e86aa6'], [800, '#f2c14e'], [900, '#5fb8e0']]) el('circle', { cx, cy: 486, r: 22, fill: c }, chWrong);
+el('rect', { x: 740, y: 548, width: 120, height: 40, rx: 6, fill: '#ffcf4a', opacity: 0.9 }, chWrong);
+el('rect', { x: 760, y: 560, width: 80, height: 6, rx: 3, fill: '#7a2f8f' }, chWrong);
+el('rect', { x: 770, y: 572, width: 60, height: 6, rx: 3, fill: '#7a2f8f' }, chWrong);
+// garden channel: a gardening show
+const chGarden = el('g', {}, world);
+el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, fill: lit('#bcdaf0', 'v', 0.12) }, chGarden);
+el('path', { d: `M ${SCR.x} 560 Q 720 520 800 548 Q 880 520 ${SCR.x + SCR.w} 540 L ${SCR.x + SCR.w} ${SCR.y + SCR.h} L ${SCR.x} ${SCR.y + SCR.h} Z`, fill: '#7fa86f' }, chGarden);
+el('path', { d: `M ${SCR.x} 585 Q 800 560 ${SCR.x + SCR.w} 580 L ${SCR.x + SCR.w} ${SCR.y + SCR.h} L ${SCR.x} ${SCR.y + SCR.h} Z`, fill: '#5f8d55' }, chGarden);
+for (let i = 0; i < 18; i++) el('circle', { cx: 660 + i * 16.5, cy: 588 + (i % 3) * 7, r: 4, fill: ['#f2a7b8', '#f7d67a', '#d9b3f0'][i % 3], opacity: 0.9 }, chGarden);
+el('circle', { cx: 900, cy: 474, r: 16, fill: '#fbe7a1' }, chGarden);
+el('rect', { x: 636, y: 432, width: 328, height: 188, rx: 6, fill: 'none', stroke: '#1c1d20', 'stroke-width': 8 }, world);
+// side table + remote
+shadow(world, 1040, 784, 50, 7, 0.22);
+el('rect', { x: 1034, y: 698, width: 12, height: 84, fill: '#7a5a3e' }, world);
+el('ellipse', { cx: 1040, cy: 698, rx: 52, ry: 10, fill: lit('#9c7752', 'h', 0.2) }, world);
+// residents' armchairs
+const chW = armchair(1380, '#a7b59b'), chR = armchair(1640, '#c7a39a');
+world.appendChild(chW.back); world.appendChild(chR.back);
+const tvPeople = el('g', {}, world);
+world.appendChild(chW.front); world.appendChild(chR.front);
+const tvLaps = el('g', {}, world);
+
+// lounge: window with light, curtains, Margaret's chair, sofa, side table, plain chair, bookshelf
+el('rect', { x: 2560, y: 150, width: 400, height: 300, fill: '#f4efe6' }, world);
+el('rect', { x: 2574, y: 164, width: 372, height: 272, fill: lit('#cfe3f1', 'v', 0.1) }, world);
+el('path', { d: 'M 2574 436 L 2574 380 Q 2640 340 2720 372 Q 2800 330 2946 368 L 2946 436 Z', fill: '#a9c49a' }, world);
+el('circle', { cx: 2650, cy: 360, r: 34, fill: '#8fb184' }, world);
+el('circle', { cx: 2880, cy: 350, r: 44, fill: '#86a97c' }, world);
+el('rect', { x: 2757, y: 164, width: 6, height: 272, fill: '#f4efe6' }, world);
+el('rect', { x: 2574, y: 297, width: 372, height: 6, fill: '#f4efe6' }, world);
+for (const [x0] of [[2520], [2930]]) {
+  for (let i = 0; i < 4; i++) el('rect', { x: x0 + i * 18, y: 130, width: 18, height: 360, fill: i % 2 ? '#d9c2a8' : '#e5d2bb' }, world);
+}
+el('rect', { x: 2500, y: 124, width: 520, height: 10, rx: 5, fill: '#8a6d50' }, world);
+el('rect', { x: 3200, y: 230, width: 130, height: 160, fill: '#7b5b3d' }, world);
+el('rect', { x: 3208, y: 238, width: 114, height: 144, fill: lit('#c9b79a', 'v', 0.2) }, world);
+el('rect', { x: 3390, y: 260, width: 170, height: 120, fill: '#7b5b3d' }, world);
+el('rect', { x: 3398, y: 268, width: 154, height: 104, fill: lit('#b8c7d6', 'v', 0.2) }, world);
+// bookshelf
+shadow(world, 4130, 784, 120, 10, 0.25);
+el('rect', { x: 4020, y: 360, width: 220, height: 420, fill: lit('#8c6a4c', 'h', 0.25) }, world);
+for (let r = 0; r < 4; r++) {
+  el('rect', { x: 4032, y: 380 + r * 100, width: 196, height: 86, fill: '#4f3c2c' }, world);
+  for (let b = 0; b < 9; b++) el('rect', { x: 4038 + b * 21, y: 400 + r * 100 + (b % 3) * 4, width: 16, height: 66 - (b % 3) * 4, fill: ['#9b5b4b', '#5b7b8b', '#c2a26b', '#6b8b6b', '#8b6b9b'][(b + r) % 5] }, world);
+}
+// sofa with two residents
+shadow(world, 3450, 790, 240, 12, 0.25);
+el('path', { d: 'M 3250 705 L 3250 590 Q 3250 552 3290 550 L 3610 550 Q 3650 552 3650 590 L 3650 705 Z', fill: lit('#8fa39a', 'h', 0.22) }, world);
+const sofaPeople = el('g', {}, world);
+el('rect', { x: 3252, y: 697, width: 396, height: 34, rx: 14, fill: lit('#9db0a7', 'v', 0.18) }, world);
+el('rect', { x: 3250, y: 725, width: 400, height: 58, rx: 8, fill: lit('#8fa39a', 'v', 0.25) }, world);
+const sofaLaps = el('g', {}, world);
+for (const dx of [3212, 3612]) el('rect', { x: dx, y: 630, width: 44, height: 152, rx: 20, fill: lit('#869a91', 'h', 0.25) }, world);
+el('path', { d: 'M 3700 782 L 3700 640 Q 3700 618 3722 618 Q 3740 618 3740 636', fill: 'none', stroke: '#6e4a2f', 'stroke-width': 8, 'stroke-linecap': 'round' }, world);
+shadow(world, 3860, 784, 56, 7, 0.22);
+el('rect', { x: 3854, y: 700, width: 12, height: 82, fill: '#7a5a3e' }, world);
+el('ellipse', { cx: 3860, cy: 700, rx: 58, ry: 10, fill: lit('#9c7752', 'h', 0.2) }, world);
+el('path', { d: 'M 3834 694 Q 3830 662 3860 660 Q 3890 662 3886 694 Z', fill: lit('#f6f3ee', 'h', 0.2) }, world);
+el('path', { d: 'M 3886 676 Q 3902 670 3904 660', stroke: '#e7e2da', 'stroke-width': 5, fill: 'none' }, world);
+// plain wooden chair (seat in front layer so the newcomer can sit on it)
+const woodBack = el('g', {}, world);
+shadow(woodBack, 2500, 788, 70, 8, 0.22);
+for (const dx of [-52, 40]) el('rect', { x: 2500 + dx, y: 520, width: 12, height: 190, fill: lit('#9a7350', 'h', 0.25) }, woodBack);
+el('rect', { x: 2448, y: 520, width: 104, height: 26, rx: 6, fill: lit('#a67c56', 'v', 0.2) }, woodBack);
+el('rect', { x: 2448, y: 566, width: 104, height: 10, rx: 4, fill: '#9a7350' }, woodBack);
+// Margaret's armchair (another staff member sits in it)
+const chM = armchair(2760, '#8ea0b3');
+world.appendChild(chM.back);
+const people = el('g', {}, world);
+world.appendChild(chM.front);
+const staffLap = el('g', {}, world);
+const woodFront = el('g', {});
+el('rect', { x: 2436, y: 698, width: 128, height: 22, rx: 6, fill: lit('#b0865d', 'v', 0.2) }, woodFront);
+for (const dx of [-60, 48]) el('rect', { x: 2500 + dx, y: 718, width: 12, height: 72, fill: lit('#8f6a49', 'h', 0.2) }, woodFront);
+
+// ---------- cast ----------
+const nc = makePerson({ top: '#6d9fbf', pants: '#5b87a3', skin: '#efc9a6', hairColor: '#5a3e2b', hair: 'side', vneck: true, shortSleeve: true, badge: true });
+const walter = makePerson({ top: '#7d8a74', skin: '#e3b48e', hairColor: '#d9d6d0', hair: 'bald', glasses: true, cardigan: '#e8e2d6' });
+const rose = makePerson({ top: '#9a86a8', skin: '#f2cfb2', hairColor: '#e6e3df', hair: 'bob', bun: true, cardigan: '#efe9df' });
+const arthur = makePerson({ top: '#8a7262', skin: '#f0cdb0', hairColor: '#dedbd6', hair: 'bald', glasses: true, cardigan: '#e9e3d8' });
+const edna = makePerson({ top: '#b07f8f', skin: '#a8724f', hairColor: '#e2e0dc', hair: 'curly', cardigan: '#efe6dc' });
+const staff = makePerson({ top: '#6fa38c', pants: '#5d8c77', skin: '#d9a47a', hairColor: '#3b2a20', hair: 'short', vneck: true, shortSleeve: true });
+tvPeople.appendChild(walter.g); tvPeople.appendChild(rose.g);
+sofaPeople.appendChild(arthur.g); sofaPeople.appendChild(edna.g);
+people.appendChild(staff.g);
+tvLaps.appendChild(walter.lap); tvLaps.appendChild(rose.lap);
+sofaLaps.appendChild(arthur.lap); sofaLaps.appendChild(edna.lap);
+staffLap.appendChild(staff.lap);
+const glow = el('circle', { r: 220, fill: 'url(#glow)', opacity: 0 }, topL);
+const ncLayer = el('g', {}, topL);
+ncLayer.appendChild(nc.g);
+const robot = makeRobot();
+ncLayer.appendChild(robot);
+const remote = el('g', {}, topL);
+el('rect', { x: -6, y: -20, width: 12, height: 40, rx: 4, fill: '#2a2b2e' }, remote);
+el('circle', { cx: 0, cy: -12, r: 2.5, fill: '#e05a4f' }, remote);
+// the newcomer is drawn on top of the world, so the wooden chair's seat has to be drawn over them
+topL.appendChild(woodFront);
+topL.appendChild(nc.lap);
+
+// ---------- text ----------
+const CPS = 17;
+function typed(node, t, lines) {
+  let html = '', active = -1;
+  lines.forEach(([s, t0], i) => { if (t >= t0) active = i; });
+  lines.forEach(([s, t0], i) => {
+    if (t < t0) return;
+    const n = Math.min(s.length, Math.floor((t - t0) * CPS));
+    const showCur = i === active && (n < s.length || Math.floor(t * 2.2) % 2 === 0);
+    html += (i ? '\n' : '') + s.slice(0, n) + `<span class="cursor"${showCur ? '' : ' style="visibility:hidden"'}></span>`;
+  });
+  node.innerHTML = html;
+}
+const intro = document.getElementById('intro'), cap = document.getElementById('cap'), outro = document.getElementById('outro');
+const CAPS = [
+  ['Sometimes you get corrected yourself...', 16.2, 21.0],
+  ['...sometimes you watch someone else get corrected.', 23.4, 29.8],
+  ['Either way, you pick up the local rules.', 30.2, 33.4],
+];
+// [start, end, speaker, line, thought?, timed in real scene time?]
+const LINES = [
+  [8.7, 11.3, 'nc', 'I need to put on the TV show at 4 pm.', true, true],
+  [16.5, 18.3, 'walter', 'Oh, it’s garden hour, dear.'],
+  [18.4, 20.5, 'nc', 'Oops, wrong channel. It’s garden hour now.', true],
+  [25.6, 27.4, 'arthur', 'Oh, that’s Margaret’s chair, dear.'],
+  [27.5, 28.6, 'staff', 'Oh! Sorry.'],
+  [28.9, 30.4, 'nc', 'So that one is Margaret’s.', true],
+];
+const speaking = (t, who) => LINES.some(([a, b, w, , th]) => !th && w === who && t > a && t < b);
+// One speech/thought bubble, drawn in screen space above the speaker's head.
+const bubbleL = el('g', {}, topL);
+const bub = el('g', {}, bubbleL);
+const bubBox = el('rect', { rx: 24, fill: '#fff', stroke: '#d6d3cd', 'stroke-width': 2 }, bub);
+const bubTail = el('path', { fill: '#fff' }, bub);
+const bubDots = [el('circle', { r: 9, fill: '#fff', stroke: '#d6d3cd', 'stroke-width': 2 }, bub), el('circle', { r: 5.5, fill: '#fff', stroke: '#d6d3cd', 'stroke-width': 2 }, bub)];
+const bubText = el('text', { 'font-family': 'IBM Plex Sans', 'font-size': 32, fill: '#2a2622', 'text-anchor': 'middle' }, bub);
+const heads = {};
+function drawBubble(tOld, t0) {
+  bubbleL.setAttribute('opacity', 0);
+  for (const [a, b, who, line, th, abs] of LINES) {
+    const t = abs ? t0 : tOld;
+    if (t < a || t >= b || !heads[who]) continue;
+    const [hx, hy] = heads[who];
+    bubText.textContent = line;
+    bubText.setAttribute('font-style', th ? 'italic' : 'normal');
+    bubText.setAttribute('fill', th ? '#5a524a' : '#2a2622');
+    const w = bubText.getComputedTextLength() + 56, h = 66;
+    const cx = Math.max(w / 2 + 30, Math.min(1890 - w / 2, hx + 40)), by = hy - 40 - h;
+    bubBox.setAttribute('x', cx - w / 2); bubBox.setAttribute('y', by); bubBox.setAttribute('width', w); bubBox.setAttribute('height', h);
+    bubText.setAttribute('x', cx); bubText.setAttribute('y', by + 43);
+    bubTail.style.display = th ? 'none' : '';
+    bubTail.setAttribute('d', `M ${hx + 4} ${by + h - 2} L ${hx + 8} ${hy - 14} L ${hx + 30} ${by + h - 2} Z`);
+    bubDots.forEach((d, i) => { d.style.display = th ? '' : 'none'; d.setAttribute('cx', hx + 10 - i * 6); d.setAttribute('cy', by + h + 14 + i * 16); });
+    const v = win(t, a, b, 0.25);
+    bubbleL.setAttribute('opacity', v);
+    bub.setAttribute('transform', `translate(${hx} ${by + h}) scale(${0.92 + 0.08 * v}) translate(${-hx} ${-(by + h)})`);
+  }
+}
+// screen position of a person's head top
+const headTop = (s, camX) => [s.x - camX, s.y - (s.seated ? 334 : 414) * (s.scale ?? 1)];
+const talkMouth = (t) => (Math.floor(t * 7) % 2 ? 'talk' : 'smile');
+
+function walkTo(t, t0, t1, from, to, speed = 9) {
+  const u = smooth(p(t, t0, t1));
+  return { x: lerp(from[0], to[0], u), y: lerp(from[1], to[1], u), walk: t > t0 && t < t1 ? (t - t0) * speed : null };
+}
+
+// ---------- timeline ----------
+// The scene was first timed with a door entrance (scene time 8-13.9). The new opening starts in the room; MAP converts new scene time t0 to that original timeline t, and stretches the
+// "garden hour" remark and the reflection so they stay on screen longer. Pairs are [t0, t].
+const MAP = [[8.8, 13.9], [11.4, 15.4], [12.1, 16.1], [12.6, 16.5], [15.6, 18.3], [15.7, 18.4], [17.4, 19.0], [18.7, 20.5], [19.2, 21.0]];
+function toOld(t0) {
+  if (t0 <= MAP[0][0]) return MAP[0][1];
+  for (let i = 1; i < MAP.length; i++) if (t0 <= MAP[i][0]) return lerp(MAP[i - 1][1], MAP[i][1], p(t0, MAP[i - 1][0], MAP[i][0]));
+  return t0 + 1.8;
+}
+window.seek = function (t0) {
+  const t = toOld(t0);
+  typed(intro, t0, [['First day working at a care home.', 0.6], ['Nobody hands you a list', 2.9], ["of the house's unwritten rules.", 4.4]]);
+  intro.style.opacity = 1 - p(t0, 7.2, 7.8);
+  const sceneOn = smooth(p(t0, 7.9, 8.6));
+  const fade = smooth(p(t, 33.4, 34.2));
+  const cam = lerp(0, 2040, smooth(p(t, 21.2, 23.4)));
+  for (const g of [world, frontL]) { g.setAttribute('transform', `translate(${-cam} 0)`); g.setAttribute('opacity', sceneOn); }
+  woodFront.setAttribute('transform', `translate(${-cam} 0)`);
+  woodFront.setAttribute('opacity', sceneOn * (1 - fade));
+  document.getElementById('fade').setAttribute('opacity', fade);
+
+  cap.textContent = ''; cap.style.opacity = 0;
+  for (const [s, a, b] of CAPS) if (t >= a && t < b) { cap.textContent = s; cap.style.opacity = win(t, a, b, 0.4); }
+
+
+  // ---- newcomer ----
+  let s = { x: 250, y: 644, scale: 0.84, opacity: p(t, 8.7, 9.0), mouth: 'neutral', look: 0 };
+  if (t >= 8.9) Object.assign(s, walkTo(t, 8.9, 10.4, [250, 644], [470, 790]), { scale: lerp(0.84, 1, smooth(p(t, 8.9, 10.4))) });
+  if (t > 10.4 && t < 11.0) s.look = Math.sin((t - 10.4) * 5);
+  if (t >= 11.0) Object.assign(s, walkTo(t, 11.0, 13.0, [470, 790], [1130, 790]), { look: 1, mouth: 'smile' });
+  if (t >= 13.0 && t < 13.9) Object.assign(s, { armR: -125 + 8 * Math.sin((t - 13.0) * 12), bendR: -35, mouth: 'smile' });
+  if (t >= 13.9 && t < 15.4) Object.assign(s, { look: -1, lookY: 2, tilt: -4 });
+  // remote: reach, point at the TV, then put it back
+  const reach = smooth(p(t, 15.4, 15.65)) * (1 - smooth(p(t, 15.7, 16.0)));
+  const point = smooth(p(t, 15.7, 16.0)) * (1 - smooth(p(t, 19.6, 19.9)));
+  const putBack = smooth(p(t, 19.9, 20.1)) * (1 - smooth(p(t, 20.15, 20.4)));
+  if (t >= 15.4 && t < 20.6) {
+    s.armL = 5 + 22 * reach + 95 * point + 22 * putBack;
+    s.look = t > 16.4 && t < 18.4 ? 1 : -1;
+    s.blush = smooth(p(t, 16.8, 17.2)) * (1 - smooth(p(t, 19.8, 20.4)));
+    s.mouth = t > 16.4 && t < 16.9 ? 'open' : 'smile';
+    if (t > 18.4 && t < 19.4) s.tilt = 3;
+  }
+  const remoteHeld = t >= 15.65 && t < 20.1;
+  if (remoteHeld) {
+    const [hx, hy] = nc.hand(s, 0, s.armL);
+    remote.setAttribute('transform', `translate(${hx - cam} ${hy}) rotate(${s.armL - 180})`);
+  } else remote.setAttribute('transform', `translate(${1040 - cam} 690) rotate(90)`);
+  remote.setAttribute('opacity', sceneOn * (1 - fade));
+  if (t >= 20.6) Object.assign(s, walkTo(t, 21.0, 23.2, [1130, 790], [2340, 790]), { look: 0.6, mouth: 'neutral' });
+  if (t >= 23.2) Object.assign(s, { look: 1, mouth: t > 25.6 && t < 26.2 ? 'open' : 'neutral' });
+  if (t >= 28.9 && t < 30.4) Object.assign(s, { tilt: 4, mouth: 'smile' });
+  if (t >= 30.4) {
+    Object.assign(s, walkTo(t, 30.4, 30.9, [2340, 790], [2430, 790]), { look: 0, mouth: 'smile' });
+    const into = smooth(p(t, 30.9, 31.3));
+    if (t >= 30.9) { s.x = lerp(2430, 2500, into); s.walk = null; }
+    s.seated = t >= 31.15 && t < 33.6;
+  }
+
+  const toCenter = smooth(p(t, 33.6, 34.4));
+  if (toCenter > 0) s.seated = false;
+  const sx = lerp(s.x - cam, 960, toCenter), sy = lerp(s.y, 930, toCenter);
+  const sScale = (s.scale ?? 1) * lerp(1, 1.12, toCenter);
+  const morph = smooth(p(t, 34.5, 34.95));
+  nc.set({ ...s, x: sx, y: sy, scale: sScale, opacity: sceneOn * (s.opacity ?? 1) * (1 - morph) });
+  heads.nc = headTop({ ...s, x: sx, y: sy, scale: sScale }, 0);
+  robot.setAttribute('transform', `translate(${sx} ${sy}) scale(${sScale})`);
+  robot.setAttribute('opacity', morph);
+  glow.setAttribute('cx', sx); glow.setAttribute('cy', sy - 230 * sScale);
+  glow.setAttribute('opacity', 0);
+
+  // ---- TV room ----
+  const tvState = t < 16.1 ? 'off' : t < 19.0 ? 'wrong' : 'garden';
+  scrOff.style.display = tvState === 'off' ? '' : 'none';
+  chWrong.style.display = tvState === 'wrong' ? '' : 'none';
+  chGarden.style.display = tvState === 'garden' ? '' : 'none';
+  const greet = false;
+  const surprised = t > 16.2 && t < 16.6;
+  const happy = t > 19.2 && t < 20.4;
+  const wMouth = speaking(t, 'walter') ? talkMouth(t) : surprised ? 'open' : happy || greet ? 'grin' : 'smile';
+  heads.walter = headTop({ x: 1380, y: 790, seated: true }, cam);
+  walter.set({ x: 1380, y: 790, seated: true, look: tvState === 'off' && !greet ? -0.4 : -1, tilt: t > 16.2 && t < 18.4 ? -5 : 0, mouth: wMouth, brows: surprised ? 'up' : 'none' });
+  rose.set({ x: 1640, y: 790, seated: true, look: -1, tilt: happy ? -4 : 0, mouth: surprised ? 'open' : happy || greet ? 'grin' : 'smile', brows: surprised ? 'up' : 'none',
+    armR: greet ? -125 + 8 * Math.sin(t * 12) : happy ? -40 : undefined, bendR: greet ? -35 : undefined });
+
+  // ---- lounge ----
+  let st = { x: 4300, y: 800, look: -1, mouth: 'smile' };
+  if (t >= 23.4) Object.assign(st, walkTo(t, 23.4, 24.8, [4300, 800], [2880, 800], 11));
+  if (t >= 24.8 && t < 29.0) {
+    const into = smooth(p(t, 24.8, 25.1)), out = smooth(p(t, 28.4, 28.7));
+    st.x = lerp(lerp(2880, 2760, into), 2880, out);
+    st.seated = t >= 25.0 && t < 28.55;
+    st.walk = null;
+    if (t > 25.6) { st.look = 1; st.blush = smooth(p(t, 26.2, 26.6)); st.mouth = speaking(t, 'staff') ? talkMouth(t) : t < 26.2 ? 'open' : 'smile'; }
+  }
+  if (t >= 29.0) Object.assign(st, walkTo(t, 29.0, 30.4, [2880, 800], [4300, 800], 11), { look: 1, mouth: 'smile', blush: 1 - smooth(p(t, 29.2, 29.8)) });
+  staff.set(st);
+  heads.staff = headTop(st, cam);
+  const turn = smooth(p(t, 25.3, 25.6)) * (1 - smooth(p(t, 28.6, 29.0)));
+  const gesture = smooth(p(t, 25.6, 25.9)) * (1 - smooth(p(t, 27.2, 27.6)));
+  heads.arthur = headTop({ x: 3360, y: 790, seated: true }, cam);
+  arthur.set({ x: 3360, y: 790, seated: true, look: lerp(0.2, -1, turn), tilt: -4 * turn, mouth: speaking(t, 'arthur') ? talkMouth(t) : 'smile', armL: -14 + 55 * gesture });
+  edna.set({ x: 3540, y: 790, seated: true, look: lerp(0.4, -1, turn), tilt: -3 * turn, mouth: 'smile' });
+
+  drawBubble(t, t0);
+
+  outro.innerHTML = '';
+  if (t >= 35.4) typed(outro, t, [['Can AI agents do the same?', 35.4]]);
+};
+window.seek(0);
+</script>
+</body>
+</html>

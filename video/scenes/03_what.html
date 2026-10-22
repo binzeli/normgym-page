@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .bullets { position: absolute; left: 50%; top: 290px; transform: translateX(-50%); width: 1240px; }
+  .bullet { text-wrap: balance; display: flex; gap: 34px; align-items: baseline; font-size: 48px; line-height: 1.35; margin-bottom: 70px; }
+  .bullet .n { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--navy); font-size: 40px; }
+  b { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="heading" id="head">What is NormGym?</div>
+<div class="bullets">
+  <div class="bullet" id="b1"><span class="n">01</span><span>A newcomer agent joins a community that follows a <b>hidden norm</b>.</span></div>
+  <div class="bullet" id="b2"><span class="n">02</span><span>Breaking the norm is possible, but it is <b>publicly sanctioned</b>.</span></div>
+  <div class="bullet" id="b3"><span class="n">03</span><span>The newcomer pursues <b>its own task</b> and must infer the norm along the way.</span></div>
+</div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 9;
+window.seek = function (t) {
+  enter($('#head'), t, 0);
+  enter($('#b1'), t, 0.9); enter($('#b2'), t, 2.9); enter($('#b3'), t, 4.9);
+};
+window.seek(0);
+</script>
+</body>
+</html>

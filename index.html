@@ -38,6 +38,11 @@
       <span><sup>2</sup>Vector Institute for Artificial Intelligence</span>
     </p>
     <p class="equal">*Equal advising</p>
+    <figure class="intro-video">
+      <video controls playsinline preload="metadata" poster="static/video/normgym_intro_poster.jpg">
+        <source src="static/video/normgym_intro.mp4" type="video/mp4">
+      </video>
+    </figure>
     <p class="links">
       <span class="btn-paper">Paper (coming soon)</span>
       <span class="btn-code">Code (coming soon)</span>
@@ -45,19 +50,6 @@
       <a class="btn-bib" href="#bibtex">BibTeX</a>
     </p>
   </header>
-
-  <section id="video">
-    <video controls muted playsinline preload="metadata" poster="static/video/poster.jpg">
-      <source src="static/video/demo.mp4" type="video/mp4">
-    </video>
-    <figcaption>
-      A newcomer, played by Claude Opus 5, enters a café where customers may only sit in the
-      bottom-right region. It is never told this. While pursuing its own goal in the café, it is
-      sanctioned for its own violations and sees the sanctions other customers receive. The panel
-      on the right shows its current guess at the norm.
-      <a href="demo.html">Step through it in the interactive demo.</a>
-    </figcaption>
-  </section>
 
   <section>
     <h2>Abstract</h2>
@@ -97,12 +89,16 @@
       work out the norm along the way, from its own mistakes and from what happens to everyone else.
     </p>
 
-    <figure>
-      <a href="static/img/fig1_trace.png"><img src="static/img/fig1_trace.png" alt="Timeline of a newcomer named Jude in a café: sanctioned at t=11 and t=75, observes a peer violation at t=106, sits correctly at t=124, and states the learned norm at t=200."></a>
+    <figure id="video">
+      <video controls muted playsinline preload="metadata" poster="static/video/poster.jpg">
+        <source src="static/video/demo.mp4" type="video/mp4">
+      </video>
       <figcaption>
-        <b>An example episode.</b> Jude is sanctioned twice for sitting in the wrong area, then sees
-        another customer, Drew, sanctioned for the same seat. By t = 124 Jude sits in the permitted
-        region, and at t = 200 states a norm close to the ground truth.
+        <b>An example episode.</b> A newcomer, played by Claude Opus 5, enters a café where
+        customers may only sit in the bottom-right region. It is never told this. While pursuing its
+        own goal in the café, it is sanctioned for its own violations and sees the sanctions other
+        customers receive. The panel on the right shows its current guess at the norm.
+        <a href="demo.html">Step through it in the interactive demo.</a>
       </figcaption>
     </figure>
   </section>

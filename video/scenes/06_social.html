@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .heading { font-size: 40px; }
+  .crop { position: relative; overflow: hidden; }
+  .crop img { position: absolute; }
+  .panel { position: absolute; top: 240px; padding: 22px; }
+  #legendCard { position: absolute; top: 150px; left: 50%; padding: 10px 24px; }
+  .hl { position: absolute; border: 4px solid var(--orange); border-radius: 12px; box-sizing: border-box; }
+  #cap { top: 958px; font-size: 38px; padding: 0 120px; }
+</style>
+</head>
+<body>
+<div class="heading" id="head">Models mostly learn from their own violations, not from others’ behaviors</div>
+<div id="legendCard" class="card"><div class="crop" id="legend"></div></div>
+<div class="panel card" id="pc"><div class="crop" id="cropC"></div>
+  <div class="hl" id="h1"></div><div class="hl" id="h2"></div><div class="hl" id="h3"></div></div>
+<div class="panel card" id="pd"><div class="crop" id="cropD"></div><div class="hl" id="h4"></div></div>
+<div class="caption" id="cap"></div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 18;
+const IW = 3990, IH = 1972;
+// crop a region (fractions of fig4) into a box at the given display scale
+function crop(node, [x0, y0, x1, y1], scale) {
+  const w = (x1 - x0) * IW * scale, h = (y1 - y0) * IH * scale;
+  node.style.width = w + 'px'; node.style.height = h + 'px';
+  const img = document.createElement('img');
+  img.src = '../assets/fig4.png';
+  Object.assign(img.style, { width: IW * scale + 'px', left: -x0 * IW * scale + 'px', top: -y0 * IH * scale + 'px' });
+  node.appendChild(img);
+  return [w, h];
+}
+const [lw] = crop($('#legend'), [0.1525, 0.025, 0.82, 0.076], 0.52);
+$('#legendCard').style.marginLeft = -(lw / 2 + 24) + 'px';
+const [cw, ch] = crop($('#cropC'), [0.5025, 0.512, 0.742, 0.958], 0.7);
+const [dw, dh] = crop($('#cropD'), [0.745, 0.512, 0.995, 0.95], 0.7);
+// highlight boxes as fractions of each crop
+function box(id, [x0, y0, x1, y1], w, h) {
+  Object.assign($(id).style, { left: 22 + x0 * w + 'px', top: 22 + y0 * h + 'px', width: (x1 - x0) * w + 'px', height: (y1 - y0) * h + 'px' });
+}
+box('#h1', [0.2, 0.12, 0.455, 0.995], cw, ch);
+box('#h2', [0.455, 0.45, 0.7, 0.995], cw, ch);
+box('#h3', [0.7, 0.55, 0.99, 0.995], cw, ch);
+box('#h4', [0.0, 0.31, 0.8, 0.64], dw, dh);
+
+const CAPS = [
+  [2.0, 4.8, 'After its <b>own</b> violation, a model’s belief improves the most.', '#h1'],
+  [4.8, 7.4, 'Seeing <b>someone else</b> sanctioned helps far less.', '#h2'],
+  [7.4, 9.7, 'Watching others behave correctly: almost <b>no</b> change.', '#h3'],
+  [10.3, 14.0, 'Humans relied mostly on <b>watching others</b>, alone or together with their own violations.', '#h4'],
+  [14.0, 99, 'Today’s models barely use social evidence to infer norms.', null],
+];
+
+window.seek = function (t) {
+  enter($('#head'), t, 0);
+  $('#legendCard').style.opacity = smooth(p(t, 0.6, 1.1));
+  // panel (c) is shown alone in the center, then moves aside as (d) appears
+  const pcW = cw + 44, pdW = dw + 44, gap = 60;
+  const leftPair = (1920 - pcW - pdW - gap) / 2;
+  $('#pc').style.left = lerp((1920 - pcW) / 2, leftPair, smooth(p(t, 9.6, 10.4))) + 'px';
+  $('#pd').style.left = leftPair + pcW + gap + 'px';
+  enter($('#pc'), t, 0.9);
+  enter($('#pd'), t, 10.2);
+
+  const cap = $('#cap');
+  cap.style.opacity = 0;
+  for (const id of ['#h1', '#h2', '#h3', '#h4']) $(id).style.opacity = 0;
+  for (const [a, b, html, h] of CAPS) {
+    const v = smooth(p(t, a, a + 0.4)) * (1 - smooth(p(t, b - 0.35, b)));
+    if (t >= a && t < b) {
+      if (cap.dataset.k !== html) { cap.innerHTML = html; cap.dataset.k = html; }
+      cap.style.opacity = v;
+    }
+    if (h) $(h).style.opacity = Math.max(+$(h).style.opacity, v);
+  }
+};
+window.seek(0);
+</script>
+</body>
+</html>

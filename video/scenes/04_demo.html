@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .heading { top: 40px; font-size: 48px; }
+  /* the demo footage is composited into this frame by build.sh (see DEMO_BOX there) */
+  #frame { position: absolute; left: 216px; top: 126px; width: 1488px; height: 840px; border-radius: 14px;
+           background: #f1efea; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.10); }
+  #cap { top: 990px; font-size: 38px; }
+  #cap b { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="heading" id="head">An example episode</div>
+<div id="frame"></div>
+<div class="caption" id="cap"></div>
+<script src="common.js"></script>
+<script>
+// build.sh composites the demo clip into #frame starting at 0.8 s; caption times are in scene time.
+window.DURATION = 23.6;
+const CAPS = [
+  [1.2, 8.9, 'The newcomer (Claude Opus 5) sits outside the bottom-right area: <b>sanctioned</b>.'],
+  [9.1, 13.1, 'It also sees <b>another customer</b> sanctioned for the same thing.'],
+  [13.3, 17.7, 'Later, it sits in the bottom-right area: <b>no violation</b>.'],
+  [17.9, 99, 'Its final guess (right panel) is close to the café’s hidden norm.'],
+];
+window.seek = function (t) {
+  enter($('#head'), t, 0);
+  enter($('#frame'), t, 0.1, { d: 0.5 });
+  const cap = $('#cap');
+  cap.style.opacity = 0;
+  for (const [a, b, html] of CAPS) if (t >= a && t < b) {
+    if (cap.dataset.k !== html) { cap.innerHTML = html; cap.dataset.k = html; }
+    cap.style.opacity = smooth(p(t, a, a + 0.4)) * (1 - smooth(p(t, b - 0.35, b)));
+  }
+};
+window.seek(0);
+</script>
+</body>
+</html>

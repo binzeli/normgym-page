@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  #sub { top: 128px; font-size: 30px; color: var(--muted); }
+  #chart { position: absolute; left: 90px; top: 200px; }
+  #legend { position: absolute; left: 450px; top: 196px; display: flex; gap: 36px; font-size: 26px; color: #444; }
+  #legend span::before { content: ''; display: inline-block; width: 22px; height: 22px; border-radius: 4px; margin-right: 10px; vertical-align: -3px; background: var(--c); }
+  #side { position: absolute; left: 1310px; top: 420px; width: 520px; }
+  .tile { padding: 30px 34px; margin-bottom: 34px; }
+  .tile .k { font-size: 28px; color: var(--muted); }
+  .tile .v { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 64px; line-height: 1.1; margin: 6px 0; }
+  .tile .v small { font-size: 30px; color: var(--muted); font-weight: 500; }
+  .tile .d { font-size: 30px; color: #333; line-height: 1.45; }
+  #take { top: 958px; font-size: 38px; }
+</style>
+</head>
+<body>
+<div class="heading" id="head">Joint success</div>
+<div class="caption" id="sub">% of test episodes where the agent finishes its task with zero norm violations</div>
+<div id="legend"><span style="--c:#23417a">Seen layout</span><span style="--c:#8ea3c8">Unseen layouts</span></div>
+<svg id="chart" width="1180" height="740"></svg>
+<div id="side">
+  <div class="tile card" id="t1">
+    <div class="k">Best model, Claude Opus 5</div>
+    <div class="v">55.3%</div>
+    <div class="d">Humans reach 88.0%.</div>
+    <div class="d">Open models stay near zero.</div>
+  </div>
+</div>
+<div class="caption" id="take">Current agents struggle to pick up norms through interaction.</div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 13;
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+const svg = $('#chart');
+const ROWS = [
+  ['Human', 88.0, 88.0, 'ref'],
+  ['Claude Opus 5', 55.3, 51.3],
+  ['GPT-5.6 Sol', 44.0, 40.7],
+  ['Gemini 3.1 Pro', 24.0, 16.7],
+  ['RL (DQN-CNN)', 12.7, 2.0, 'gap'],
+  ['RL (DQN-MLP)', 8.0, 2.0],
+  ['Ministral-3-8B', 3.3, 4.0, 'gap'],
+  ['Qwen3-VL-8B', 1.3, 0.6],
+  ['GLM-4.6V-Flash', 0.0, 0.0],
+  ['Llama-3.2-11B', 0.0, 0.0],
+];
+const X0 = 360, SCALE = 7.2, BAR = 22, GAP = 2, ROW = 64;
+const COLORS = { seen: '#23417a', unseen: '#8ea3c8', refSeen: '#8a8a8a', refUnseen: '#c4c4c4' };
+// recessive grid
+for (const v of [0, 25, 50, 75, 100]) {
+  el('line', { x1: X0 + v * SCALE, y1: 40, x2: X0 + v * SCALE, y2: 700, stroke: v ? '#e7dfd0' : '#b9ad98', 'stroke-width': v ? 1.5 : 2 }, svg);
+  const tx = el('text', { x: X0 + v * SCALE, y: 738, 'text-anchor': 'middle', 'font-size': 22, fill: '#888', 'font-family': 'IBM Plex Sans' }, svg);
+  tx.textContent = v;
+}
+let y = 56;
+const marks = ROWS.map(([name, seen, unseen, kind], i) => {
+  if (kind === 'gap') y += 18;
+  const g = el('g', {}, svg);
+  const label = el('text', { x: X0 - 22, y: y + BAR + 8, 'text-anchor': 'end', 'font-size': 28, fill: kind === 'ref' ? '#666' : '#222', 'font-family': 'IBM Plex Sans', 'font-weight': i === 1 ? 600 : 400 }, g);
+  label.textContent = name;
+  const bars = [[seen, kind === 'ref' ? COLORS.refSeen : COLORS.seen, y], [unseen, kind === 'ref' ? COLORS.refUnseen : COLORS.unseen, y + BAR + GAP]].map(([v, c, by]) => {
+    const r = el('path', { fill: c }, g);
+    const t = el('text', { y: by + BAR - 3, 'font-size': 23, fill: '#555', 'font-family': 'IBM Plex Sans' }, g);
+    t.textContent = v.toFixed(1);
+    return { v, r, t, by };
+  });
+  const row = { g, bars, y };
+  y += ROW;
+  return row;
+});
+const hl = el('rect', { x: 10, y: marks[1].y - 10, width: 1150, height: 2 * BAR + GAP + 20, rx: 12, fill: 'none', stroke: '#23417a', 'stroke-width': 3 }, svg);
+// a bar with a 4px rounded data-end, anchored square on the baseline
+function barPath(x, y, w, h) {
+  if (w <= 0) return '';
+  const r = Math.min(4, w);
+  return `M ${x} ${y} H ${x + w - r} Q ${x + w} ${y} ${x + w} ${y + r} V ${y + h - r} Q ${x + w} ${y + h} ${x + w - r} ${y + h} H ${x} Z`;
+}
+
+window.seek = function (t) {
+  enter($('#head'), t, 0); enter($('#sub'), t, 0.3); enter($('#legend'), t, 0.5);
+  marks.forEach((m, i) => {
+    const u = smooth(p(t, 0.9 + i * 0.22, 2.1 + i * 0.22));
+    m.g.setAttribute('opacity', smooth(p(t, 0.8 + i * 0.22, 1.1 + i * 0.22)));
+    for (const b of m.bars) {
+      const w = b.v * SCALE * u;
+      b.r.setAttribute('d', barPath(X0, b.by, w, BAR));
+      b.t.setAttribute('x', X0 + w + 10);
+      b.t.setAttribute('opacity', smooth(p(t, 1.8 + i * 0.22, 2.2 + i * 0.22)));
+    }
+  });
+  enter($('#t1'), t, 5.2);
+  hl.setAttribute('opacity', smooth(p(t, 5.2, 5.7)));
+  enter($('#take'), t, 8.4);
+};
+window.seek(0);
+</script>
+</body>
+</html>

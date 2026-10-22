@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  #fig { position: absolute; left: 0; top: 0; width: 1560px; transform-origin: 0 0; padding: 0; }
+  #fig img { width: 100%; display: block; border-radius: 10px; }
+  .mask { position: absolute; background: #fff; }
+  .band { position: absolute; left: 0; right: 0; background: var(--bg); }
+  #topBand { top: 0; height: 130px; }
+  #botBand { bottom: 0; height: 150px; }
+  #cap { top: 958px; font-size: 38px; padding: 0 120px; }
+  #cap b { font-weight: 600; }
+  .tstep { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--navy); margin-right: 14px; }
+</style>
+</head>
+<body>
+<div id="fig" class="card">
+  <img src="../assets/fig1.png">
+  <!-- unrevealed regions, as fractions of the figure -->
+  <div class="mask" id="m0" style="left:0;top:0;width:100%;height:20%"></div>
+  <div class="mask" id="m1" style="left:0;top:20%;width:25%;height:66.5%"></div>
+  <div class="mask" id="m2" style="left:25%;top:20%;width:18.2%;height:66.5%"></div>
+  <div class="mask" id="m3" style="left:43.2%;top:20%;width:18.2%;height:66.5%"></div>
+  <div class="mask" id="m4" style="left:61.4%;top:20%;width:18.4%;height:66.5%"></div>
+  <div class="mask" id="m5" style="left:79.8%;top:20%;width:20.2%;height:66.5%"></div>
+  <div class="mask" id="m6" style="left:0;top:86.5%;width:100%;height:13.5%"></div>
+</div>
+<div class="band" id="topBand"></div>
+<div class="band" id="botBand"></div>
+<div class="heading" id="head">An example episode</div>
+<div class="caption" id="cap"></div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 33;
+const W = 1560, H = W * 1912 / 3793;
+const TARGET = [960, 535];
+// camera keyframes: [time, scale, focusX, focusY] (focus as a fraction of the figure)
+const CAM = [
+  [0, 1.22, 0.47, 0.36], [5.6, 1.22, 0.47, 0.36],
+  [6.6, 1.6, 0.27, 0.535], [10.2, 1.6, 0.27, 0.535],
+  [11.2, 1.6, 0.42, 0.535], [14.8, 1.6, 0.42, 0.535],
+  [15.8, 1.6, 0.58, 0.535], [19.4, 1.6, 0.58, 0.535],
+  [20.4, 1.6, 0.70, 0.535], [24.0, 1.6, 0.70, 0.535],
+  [25.0, 1.2, 0.52, 0.62], [28.2, 1.2, 0.52, 0.62],
+  [29.4, 1.0, 0.5, 0.5],
+];
+const REVEAL = { m0: 0.4, m1: 0.6, m2: 6.0, m3: 10.6, m4: 15.2, m5: 19.8, m6: 24.4 };
+const CAPS = [
+  [0.9, 5.8, 'Jude, played by Claude Opus 5, enters a café. The hidden norm: sit only in the <b>bottom-right</b> area.'],
+  [6.3, 10.4, '<span class="tstep">t = 11</span>Jude sits bottom-left and is sanctioned. “I have no idea.”'],
+  [10.9, 15.0, '<span class="tstep">t = 75</span>Sanctioned again, Jude spots a pattern: all on the west side.'],
+  [15.5, 19.6, '<span class="tstep">t = 106</span>Jude watches <b>Drew</b> get sanctioned in the same seat.'],
+  [20.1, 24.2, '<span class="tstep">t = 124</span>Jude sits bottom-right. No violation.'],
+  [24.7, 28.4, '<span class="tstep">t = 200</span>Jude’s learned norm is close to the ground truth.'],
+  [29.0, 99, 'Its own sanctions, plus one it watched, were enough to learn this norm.'],
+];
+
+function camAt(t) {
+  for (let i = 1; i < CAM.length; i++) {
+    const [t1, ...b] = CAM[i], [t0, ...a] = CAM[i - 1];
+    if (t <= t1) { const u = smooth(p(t, t0, t1)); return a.map((v, k) => lerp(v, b[k], u)); }
+  }
+  return CAM[CAM.length - 1].slice(1);
+}
+
+window.seek = function (t) {
+  const [s, fx, fy] = camAt(t);
+  const fig = $('#fig');
+  fig.style.transform = `translate(${TARGET[0] - s * fx * W}px, ${TARGET[1] - s * fy * H}px) scale(${s})`;
+  fig.style.opacity = smooth(p(t, 0, 0.5));
+  for (const id in REVEAL) $('#' + id).style.opacity = 1 - smooth(p(t, REVEAL[id], REVEAL[id] + 0.7));
+  enter($('#head'), t, 0.1);
+  const cap = $('#cap');
+  cap.style.opacity = 0;
+  for (const [a, b, html] of CAPS) if (t >= a && t < b) {
+    if (cap.dataset.k !== html) { cap.innerHTML = html; cap.dataset.k = html; }
+    cap.style.opacity = smooth(p(t, a, a + 0.4)) * (1 - smooth(p(t, b - 0.35, b)));
+  }
+};
+window.seek(0);
+</script>
+</body>
+</html>

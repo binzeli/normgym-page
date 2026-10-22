@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  #wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 70px; }
+  #logo { width: 360px; }
+  #name { font-family: 'Cinzel', serif; font-weight: 600; font-size: 132px; line-height: 1; letter-spacing: 2px;
+    background: linear-gradient(180deg, #3d63a6 0%, #23417a 55%, #142a52 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .line { font-size: 46px; line-height: 1.35; color: #222; }
+  .accent { color: #c0562b; font-weight: 600; }
+  .line.big { font-size: 60px; line-height: 1.25; }
+  #name { margin-bottom: 26px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <img id="logo" src="../../static/img/logo.svg">
+  <div>
+    <div id="name">NormGym</div>
+    <div class="line" id="l1">The first interactive multi-agent benchmark for</div>
+    <div class="line big" id="l2"><span class="accent">normative competence</span></div>
+    <div class="line" id="l3">inferring norms through social interaction</div>
+  </div>
+</div>
+<script src="common.js"></script>
+<script>
+window.DURATION = 7;
+window.seek = function (t) {
+  enter($('#logo'), t, 0.2);
+  enter($('#name'), t, 0.8);
+  enter($('#l1'), t, 1.6);
+  enter($('#l2'), t, 2.3);
+  enter($('#l3'), t, 3.0);
+};
+window.seek(0);
+</script>
+</body>
+</html>
