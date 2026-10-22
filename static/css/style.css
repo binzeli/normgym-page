@@ -125,6 +125,22 @@ video {
 figure { margin: 26px 0 30px; }
 .intro-video { margin: 22px 0 18px; }
 
+.norm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 12px;
+}
+.norm-clip span {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-top: 5px;
+}
+@media (max-width: 560px) {
+  .norm-grid { grid-template-columns: 1fr; }
+}
+
 
 
 figure img {
