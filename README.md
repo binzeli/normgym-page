@@ -15,7 +15,8 @@
 </p>
 
 <p align="center">
-  <a href="https://binzeli.github.io/normgym-page/">Project Page</a>
+  <a href="https://binzeli.github.io/normgym-page/">Project Page</a> &nbsp;|&nbsp;
+  <a href="https://github.com/binzeli/normGym">Code</a>
 </p>
 
 ---
