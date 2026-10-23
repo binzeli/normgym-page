@@ -77,16 +77,9 @@
   <section>
     <h2>Learning the local rules</h2>
     <p>
-      Think of someone on their first day at a new job. Nobody hands them a list of the unwritten
-      rules: where to walk, when it is fine to change the TV channel, how people line up for
-      snacks. They pick these up by watching others and noticing when someone gets corrected.
-      An agent deployed into a human community faces the same problem.
-    </p>
-    <p>
-      NormGym tests this directly. A newcomer enters a grid-world community (a café, a post office,
-      a grocery store) that follows a hidden norm. Breaking the norm is physically possible, but
-      it gets the offender publicly sanctioned. The newcomer has its own task to finish and has to
-      work out the norm along the way, from its own mistakes and from what happens to everyone else.
+      In NormGym, a newcomer enters a community (a café, a post office, a grocery store) with a
+      hidden norm. Breaking it is possible but publicly sanctioned, so the newcomer must work out
+      the norm while doing its own task.
     </p>
 
     <figure id="video">
@@ -153,25 +146,12 @@
 
   <section>
     <h2>How agents are evaluated</h2>
-    <p>
-      Evaluation has two phases. In the <b>learning phase</b>, the newcomer spends 200 steps in the
-      community. At every step it sees the full state, every agent’s action, and who was sanctioned,
-      and it writes down its current belief about the norm. At least one background agent breaks the
-      norm, so there is always something to learn from.
-    </p>
-    <p>
-      In the <b>test phase</b>, the final belief is frozen and the agent plays fresh episodes, three
-      on the layout it learned on and three on a layout it has never seen. Every test episode is set up
-      so that the shortest path breaks the norm. An episode counts as a <b>joint success</b> only if
-      the agent finishes its task without a single violation.
-    </p>
-
     <figure>
-      <a href="static/img/fig3_protocol.png"><img src="static/img/fig3_protocol.png" alt="Diagram of the two-phase protocol: interactive learning with belief updates, then evaluation on seen and unseen layouts; plus four example layouts."></a>
+      <a href="static/img/fig3_protocol.png"><img src="static/img/fig3_protocol.png" alt="Diagram of the two-phase protocol: interactive learning with belief updates, then evaluation on seen and unseen layouts."></a>
       <figcaption>
-        <b>(a)</b> The newcomer acts, observes sanctions and compliant behavior, and updates its belief
-        b<sub>t</sub>. The final belief b<sub>T</sub> is then tested on seen and unseen layouts.
-        <b>(b)</b> Four of the ten layouts.
+        For 200 steps the newcomer acts, observes sanctions and compliant behavior, and updates its
+        belief b<sub>t</sub>. The final belief b<sub>T</sub> is then frozen and tested on the seen
+        layout and an unseen one.
       </figcaption>
     </figure>
   </section>
