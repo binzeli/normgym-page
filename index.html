@@ -119,59 +119,34 @@
     </ul>
 
     <figure>
-      <div class="norm-grid">
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/a1_access_seat_bottom_left.jpg" aria-label="Access norm: Sit only in the bottom-left area">
-            <source src="static/video/norms/a1_access_seat_bottom_left.mp4" type="video/mp4">
-          </video>
-          <span><b>Access.</b> Sit only in the bottom-left area</span>
+      <div class="norm-picker">
+        <div class="norm-family" role="group" aria-label="Access">
+          <span>Access</span>
+          <button type="button" data-norm="a1_access_seat_bottom_left" aria-pressed="true">Sit only in the bottom-left area</button>
+          <button type="button" data-norm="a2_access_avoid_zone_q" aria-pressed="false">Avoid walking through zone Q</button>
         </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/a2_access_avoid_zone_q.jpg" aria-label="Access norm: Avoid walking through zone Q">
-            <source src="static/video/norms/a2_access_avoid_zone_q.mp4" type="video/mp4">
-          </video>
-          <span><b>Access.</b> Avoid walking through zone Q</span>
+        <div class="norm-family" role="group" aria-label="Procedure">
+          <span>Procedure</span>
+          <button type="button" data-norm="b1_procedure_clockwise" aria-pressed="false">Move in a clockwise trajectory</button>
+          <button type="button" data-norm="b2_procedure_even_steps" aria-pressed="false">Move only on even time steps</button>
         </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/b1_procedure_clockwise.jpg" aria-label="Procedure norm: Move in a clockwise trajectory">
-            <source src="static/video/norms/b1_procedure_clockwise.mp4" type="video/mp4">
-          </video>
-          <span><b>Procedure.</b> Move in a clockwise trajectory</span>
+        <div class="norm-family" role="group" aria-label="Coordination">
+          <span>Coordination</span>
+          <button type="button" data-norm="c1_coordination_staircase_queue" aria-pressed="false">Join the staircase queue at its tail</button>
+          <button type="button" data-norm="c2_coordination_wall_queue" aria-pressed="false">Join the queue along the wall at its tail</button>
         </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/b2_procedure_even_steps.jpg" aria-label="Procedure norm: Move only on even time steps">
-            <source src="static/video/norms/b2_procedure_even_steps.mp4" type="video/mp4">
-          </video>
-          <span><b>Procedure.</b> Move only on even time steps</span>
-        </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/c1_coordination_staircase_queue.jpg" aria-label="Coordination norm: Join the staircase queue at its tail">
-            <source src="static/video/norms/c1_coordination_staircase_queue.mp4" type="video/mp4">
-          </video>
-          <span><b>Coordination.</b> Join the staircase queue at its tail</span>
-        </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/c2_coordination_wall_queue.jpg" aria-label="Coordination norm: Join the queue along the wall at its tail">
-            <source src="static/video/norms/c2_coordination_wall_queue.mp4" type="video/mp4">
-          </video>
-          <span><b>Coordination.</b> Join the queue along the wall at its tail</span>
-        </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/d1_allocation_group_door.jpg" aria-label="Allocation norm: Exit through your group's door">
-            <source src="static/video/norms/d1_allocation_group_door.mp4" type="video/mp4">
-          </video>
-          <span><b>Allocation.</b> Exit through your group&rsquo;s door</span>
-        </div>
-        <div class="norm-clip">
-          <video autoplay muted loop playsinline preload="metadata" poster="static/video/norms/d2_allocation_zone_r_capacity.jpg" aria-label="Allocation norm: At most two agents may be in zone R">
-            <source src="static/video/norms/d2_allocation_zone_r_capacity.mp4" type="video/mp4">
-          </video>
-          <span><b>Allocation.</b> At most two agents may be in zone R</span>
+        <div class="norm-family" role="group" aria-label="Allocation">
+          <span>Allocation</span>
+          <button type="button" data-norm="d1_allocation_group_door" aria-pressed="false">Exit through your group&rsquo;s door</button>
+          <button type="button" data-norm="d2_allocation_zone_r_capacity" aria-pressed="false">At most two agents may be in zone R</button>
         </div>
       </div>
+      <video id="norm-video" autoplay muted loop playsinline preload="metadata" poster="static/video/norms/a1_access_seat_bottom_left.jpg">
+        <source src="static/video/norms/a1_access_seat_bottom_left.mp4" type="video/mp4">
+      </video>
       <figcaption>
-        <b>Two example norms from each family.</b> Every customer follows the norm except one, who
-        breaks it and is marked in red when the violation happens.
+        <b>Two example norms from each family.</b> Pick a norm to watch it. Every customer follows the
+        norm except one, who breaks it and is marked in red when the violation happens.
       </figcaption>
     </figure>
   </section>
@@ -337,6 +312,19 @@
 
 </main>
 <script>
+  var normVideo = document.getElementById('norm-video');
+  document.querySelectorAll('.norm-picker button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.norm-picker button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      var base = 'static/video/norms/' + btn.dataset.norm;
+      normVideo.poster = base + '.jpg';
+      normVideo.src = base + '.mp4';
+      normVideo.play();
+    });
+  });
+
   document.querySelector('.copy').addEventListener('click', function () {
     var btn = this;
     var text = document.querySelector('.bib code').innerText;
