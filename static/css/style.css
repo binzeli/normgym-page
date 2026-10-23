@@ -168,6 +168,18 @@ figure { margin: 26px 0 30px; }
 .intro-video { margin: 22px 0 18px; }
 
 figure > figcaption:first-child { margin: 0 0 14px; }
+main:not(.demo) > section > figure.norm-figure {
+  margin-top: 34px;
+  padding: 16px 16px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #fafbfd;
+}
+.norm-figure > figcaption {
+  font-size: 16.5px;
+  color: var(--text);
+}
+.norm-figure > figcaption .icon { color: var(--link); margin-right: 4px; }
 .norm-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
