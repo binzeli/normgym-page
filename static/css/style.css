@@ -126,7 +126,9 @@ h3 {
 
 p { margin: 0 0 14px; }
 
-.abstract { text-align: justify; hyphens: auto; }
+.highlights { padding-left: 20px; margin: 0; }
+.highlights li { margin-bottom: 10px; }
+.highlights li::marker { color: var(--red); }
 
 /* Media */
 video {
@@ -151,35 +153,6 @@ figure { margin: 26px 0 30px; }
   width: 44px;
   height: 2px;
   background: var(--red);
-}
-.home ul.families b { color: var(--fam); }
-.home ul.families li::marker { color: var(--fam); }
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 22px 0 26px;
-}
-.stats div {
-  padding: 14px 16px;
-  border-radius: 8px;
-  background: #f3f5fa;
-  border-top: 3px solid var(--link);
-}
-.stats div:first-child { border-top-color: var(--red); }
-.stats strong {
-  display: block;
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.stats span { display: block; font-size: 14.5px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
-@media (max-width: 600px) {
-  .stats { grid-template-columns: 1fr; gap: 8px; }
-  .stats div { display: flex; align-items: baseline; gap: 12px; }
-  .stats strong { font-size: 24px; }
 }
 .intro-video { margin: 22px 0 18px; }
 
@@ -242,8 +215,24 @@ figcaption {
 figcaption b { color: var(--text); font-weight: 600; }
 
 /* Lists */
-ul.families { padding-left: 20px; margin: 0 0 14px; }
-ul.families li { margin-bottom: 6px; }
+.families {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 18px 0 24px;
+}
+.family {
+  padding: 14px 14px 12px;
+  border-radius: 8px;
+  border-top: 3px solid var(--fam);
+  background: #f5f6f9;
+}
+.family-name { display: block; font-weight: 600; font-size: 18px; color: var(--fam); }
+.family-count { display: block; font-size: 13.5px; color: var(--muted); margin-bottom: 8px; }
+.family p { margin: 0; font-size: 14.5px; line-height: 1.45; }
+@media (max-width: 700px) {
+  .families { grid-template-columns: 1fr 1fr; }
+}
 
 /* Tables */
 .table-wrap { overflow-x: auto; margin: 18px 0 8px; }
@@ -351,7 +340,6 @@ footer {
   .subtitle { font-size: 19px; }
   h2 { font-size: 22px; margin-top: 40px; }
   .links a, .links span { margin: 3px 3px; padding: 4px 10px; }
-  .abstract { text-align: left; }
   .affiliations span { white-space: normal; display: block; margin: 0 0 2px; }
   .authors span { margin: 0 6px; }
   .emblem { height: 64px; }

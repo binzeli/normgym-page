@@ -52,26 +52,19 @@
   </header>
 
   <section>
-    <h2>Abstract</h2>
-    <p class="abstract">
-      Normative competence, the ability to infer socially enforced expectations from interaction
-      and adjust behavior accordingly, is essential for agents operating in unfamiliar human
-      communities. Yet existing evaluations largely test whether agents can recognize or apply norms
-      they may already know, rather than whether they can acquire previously unknown norms from
-      social interaction. We introduce <span style="font-variant: small-caps">NormGym</span>, an
-      interactive benchmark for normative competence in which a newcomer must infer a hidden,
-      arbitrary norm while pursuing its own task in a multi-agent community. Success requires
-      distinguishing what is possible from what is permitted, inferring the norm from observed
-      behavior and sanctions, and applying it in new situations. NormGym contains diverse norms and
-      distinct environments, allowing systematic evaluation of current agents, including large
-      language model (LLM) agents. We find that normative competence remains challenging: the
-      strongest evaluated LLM achieves a joint task-and-compliance success rate of 55.3%. Our
-      analysis reveals that models can sometimes revise their behavior following sanctions for their
-      own actions, but struggle to use other agents’ behavior and the sanctions they receive to infer
-      the underlying norm. We further find that fine-tuning models may be insufficient to improve
-      normative competence. These results suggest that current models lack a robust, transferable
-      capability for acquiring normative knowledge through social interaction.
-    </p>
+    <h2>Highlights</h2>
+    <ul class="highlights">
+      <li><b>A benchmark for learning norms through interaction.</b> A newcomer agent must infer a
+        hidden, arbitrary norm from other agents&rsquo; behavior and public sanctions while pursuing
+        its own task.</li>
+      <li><b>50 norms in four families, ten layouts.</b> Agents are tested on the layout they
+        learned in and on one they have never seen.</li>
+      <li><b>Current agents struggle.</b> The best LLM agent succeeds in only 55.3% of episodes,
+        against 88.0% for humans. Told the norm, GPT-5.6 Sol jumps from 44.0% to 90.7%: the hard
+        part is inferring the norm, not following it.</li>
+      <li><b>Models learn from their own sanctions, not from watching others.</b> Humans do the
+        opposite, and fine-tuning does not close the gap.</li>
+    </ul>
   </section>
 
   <section>
@@ -102,14 +95,30 @@
       If the norms were familiar ones, a language model could simply recall them from pretraining.
       So every norm in NormGym is deliberately arbitrary: a “silly rule” that a community follows only
       because it agrees to, much like human customs such as how far to stand from a stranger. Such
-      rules serve no practical purpose, yet they are enforced just as seriously. The 50 norms fall into four families:
+      rules serve no practical purpose, yet they are enforced just as seriously. The 50 norms fall into four families.
     </p>
-    <ul class="families">
-      <li style="--fam: #23417a"><b>Access</b> (12): where an agent may go, e.g. sit only in one area or avoid a zone.</li>
-      <li style="--fam: #8f2a1d"><b>Procedure</b> (11): how or when an agent moves, e.g. move only on even time steps.</li>
-      <li style="--fam: #2e6b3a"><b>Coordination</b> (16): position relative to others, e.g. join a staircase-shaped queue at its tail.</li>
-      <li style="--fam: #b35a1f"><b>Allocation</b> (11): how a shared resource is divided, e.g. at most two agents in a zone.</li>
-    </ul>
+    <div class="families">
+      <div class="family" style="--fam: #23417a">
+        <span class="family-name">Access</span>
+        <span class="family-count">12 norms</span>
+        <p><b>Where an agent may go.</b> E.g. sit only in one area, or avoid a zone.</p>
+      </div>
+      <div class="family" style="--fam: #8f2a1d">
+        <span class="family-name">Procedure</span>
+        <span class="family-count">11 norms</span>
+        <p><b>How or when an agent moves.</b> E.g. move only on even time steps.</p>
+      </div>
+      <div class="family" style="--fam: #2e6b3a">
+        <span class="family-name">Coordination</span>
+        <span class="family-count">16 norms</span>
+        <p><b>Position relative to others.</b> E.g. join a staircase-shaped queue at its tail.</p>
+      </div>
+      <div class="family" style="--fam: #b35a1f">
+        <span class="family-name">Allocation</span>
+        <span class="family-count">11 norms</span>
+        <p><b>How a shared resource is divided.</b> E.g. at most two agents in a zone.</p>
+      </div>
+    </div>
 
     <figure class="norm-figure">
       <figcaption>
@@ -145,18 +154,6 @@
   </section>
 
   <section>
-    <h2>How agents are evaluated</h2>
-    <figure>
-      <a href="static/img/fig3_protocol.png"><img src="static/img/fig3_protocol.png" alt="Diagram of the two-phase protocol: interactive learning with belief updates, then evaluation on seen and unseen layouts."></a>
-      <figcaption>
-        For 200 steps the newcomer acts, observes sanctions and compliant behavior, and updates its
-        belief b<sub>t</sub>. The final belief b<sub>T</sub> is then frozen and tested on the seen
-        layout and an unseen one.
-      </figcaption>
-    </figure>
-  </section>
-
-  <section>
     <h2>Results</h2>
     <p>
       We test seven LLM agents, two deep RL baselines trained per norm, and 50 human participants.
@@ -165,12 +162,6 @@
       Dark bars show performance in test episodes whose layout is the same as in the learning stage;
       light bars show performance in test episodes whose layout differs from the learning stage.
     </p>
-
-    <div class="stats">
-      <div><strong>55.3%</strong><span>best LLM agent, Claude Opus 5</span></div>
-      <div><strong>88.0%</strong><span>human participants</span></div>
-      <div><strong>90.7%</strong><span>GPT-5.6 Sol when told the norm</span></div>
-    </div>
 
     <figure class="bars">
       <div class="bar-legend">
