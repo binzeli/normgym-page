@@ -11,21 +11,23 @@
   <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="static/img/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png">
-  <link rel="stylesheet" href="static/css/style.css">
+  <link rel="stylesheet" href="static/css/style.css?v=2">
 </head>
 <body>
 <main class="demo">
 
-  <p class="back"><a href="index.html">← <span class="name">NormGym</span></a></p>
-  <h2 class="demo-title">Interactive demo</h2>
-  <p class="demo-intro">
-    A newcomer, played by Claude Opus 5, enters a café where customers may only sit in the
-    bottom-right region. It is never told this. Drag the slider to any timestep to see where
-    everyone is, what the newcomer did and why, and what it currently believes the norm is.
-  </p>
+  <header class="demo-head">
+    <p class="back"><a href="index.html">← <span class="name">NormGym</span></a></p>
+    <h2 class="demo-title">Interactive demo</h2>
+    <p class="demo-intro">
+      A newcomer, played by Claude Opus 5, enters a café where customers may only sit in the
+      bottom-right region. It is never told this. Drag the slider to any timestep to see where
+      everyone is, what the newcomer did and why, and what it currently believes the norm is.
+    </p>
+  </header>
 
   <div class="dash">
-    <div class="side">
+    <div class="col side">
       <section class="panel tint tint-nc">
         <h4>Newcomer</h4>
         <div id="nc"></div>
@@ -41,7 +43,8 @@
         </p>
       </section>
     </div>
-    <div class="player">
+
+    <div class="col player">
       <video id="v" muted playsinline preload="auto" poster="static/video/demo_full_poster.jpg">
         <source src="static/video/demo_full.mp4" type="video/mp4">
       </video>
@@ -67,35 +70,31 @@
         <span><i class="ev-new"></i>Newcomer violates</span>
         <span><i class="ev-other"></i>Another customer violates</span>
         <span><i class="ev-ok"></i>Newcomer follows</span>
+        <span class="keys">← / → step, space plays or pauses</span>
       </div>
+
+      <section class="panel tint tint-grey reason-panel">
+        <h4>Reasoning at this step</h4>
+        <p class="reason" id="reason"></p>
+      </section>
     </div>
 
-    <section class="panel tint tint-ev events-panel">
-      <h4>Events</h4>
-      <ol class="events" id="events"></ol>
-    </section>
-
-  </div>
-
-  <div class="dash-row">
-    <section class="panel tint tint-nc">
-      <h4>Reasoning at this step</h4>
-      <p class="reason" id="reason"></p>
-    </section>
-    <div class="stack">
-    <section class="panel truth">
-      <span class="truth-label">Ground-truth norm <i>(hidden from the newcomer)</i></span>
-      Customers may only sit in the bottom-right region of the café.
-    </section>
-    <section class="panel tint tint-nc">
-      <h4>Newcomer’s current guess at the norm</h4>
-      <p class="belief" id="belief"></p>
-      <div class="conf"><span>Confidence</span><div class="conf-bar"><div id="confbar"></div></div><b id="conf"></b></div>
-    </section>
+    <div class="col">
+      <section class="panel truth">
+        <span class="truth-label">Ground-truth norm <i>(hidden from the newcomer)</i></span>
+        Customers may only sit in the bottom-right region of the café.
+      </section>
+      <section class="panel tint tint-nc">
+        <h4>Newcomer’s current guess at the norm</h4>
+        <p class="belief" id="belief"></p>
+        <div class="conf"><span>Confidence</span><div class="conf-bar"><div id="confbar"></div></div><b id="conf"></b></div>
+      </section>
+      <section class="panel tint tint-ev events-panel">
+        <h4>Events</h4>
+        <ol class="events" id="events"></ol>
+      </section>
     </div>
   </div>
-
-  <p class="table-note">Keyboard: ← / → step one timestep, space plays or pauses.</p>
 
 </main>
 <script src="static/demo/episode.js"></script>

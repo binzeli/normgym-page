@@ -540,11 +540,12 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
 .g-orange { background: #e0892b; }
 .g-blue { background: #3d6fc4; }
 
-/* Panel tints: amber for the newcomer's own state, blue for customers, purple for events */
+/* Panel tints: amber for the newcomer's own state, grey for its reasoning, blue for customers, purple for events */
 .panel.tint { border-color: var(--tint-rule); border-left: 4px solid var(--tint-accent); background: var(--tint-bg); }
 .panel.tint h4 { color: var(--tint-head); }
 .tint-nc { --tint-bg: #fbf6e9; --tint-rule: #eadcb2; --tint-accent: #c9971c; --tint-head: #8a6508; }
 .tint-cust { --tint-bg: #eff4fb; --tint-rule: #c9d7ec; --tint-accent: #3d6fc4; --tint-head: #2f5597; }
+.tint-grey { --tint-bg: #f5f5f5; --tint-rule: #dddddd; --tint-accent: #8a8a8a; --tint-head: #555555; }
 .tint-ev { --tint-bg: #f5f1fa; --tint-rule: #dbd0ec; --tint-accent: #6b4fa3; --tint-head: #563d88; }
 .panel.tint .agents li, .panel.tint .events li { border-color: var(--tint-rule); }
 .panel.tint .events button:hover, .panel.tint .events li.cur button { background: rgba(0, 0, 0, 0.05); }
@@ -576,20 +577,14 @@ ul.agents { list-style: none; padding: 0; margin: 0; }
 .conf-bar div { height: 100%; background: var(--link); transition: width 0.15s; }
 .conf b { color: var(--text); font-weight: 600; min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 
-/* On a desktop-sized screen the whole dashboard fits the viewport: the video shrinks to leave
-   room, and the reasoning and events panels scroll inside themselves. */
-@media (min-width: 1100px) and (min-height: 620px) {
-  main.demo { height: 100vh; display: flex; flex-direction: column; padding: 14px 24px 18px; }
+/* On a desktop-sized screen the title, back link and intro share one compact header row. */
+@media (min-width: 1100px) {
+  main.demo { padding: 14px 24px 40px; }
   .demo-head { display: flex; align-items: baseline; gap: 18px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--rule); }
   .demo-head .back { margin: 0; white-space: nowrap; }
   .demo-head h2.demo-title { margin: 0; padding: 0; border: 0; font-size: 22px; white-space: nowrap; }
   .demo-head .demo-intro { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--muted); }
-  .dash { flex: 1; min-height: 0; align-items: stretch; }
-  .col { min-height: 0; }
-  .player video { flex: 0 1 auto; min-height: 0; max-height: calc(100vh - 380px); object-fit: contain; background: none; }
   .scrub { margin-top: 10px; }
-  .reason-panel, .events-panel { flex: 1 1 0; min-height: 90px; display: flex; flex-direction: column; }
-  .reason-panel .reason, .events-panel .events { flex: 1; min-height: 0; overflow-y: auto; }
 }
 @media (max-width: 1399px) {
   .legend .keys { display: none; }
