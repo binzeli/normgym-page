@@ -18,7 +18,7 @@
   <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png">
   <link rel="stylesheet" href="static/css/style.css">
 </head>
-<body>
+<body class="home">
 <main>
 
   <header>
@@ -112,10 +112,10 @@
       rules serve no practical purpose, yet they are enforced just as seriously. The 50 norms fall into four families:
     </p>
     <ul class="families">
-      <li><b>Access</b> (12): where an agent may go, e.g. sit only in one area or avoid a zone.</li>
-      <li><b>Procedure</b> (11): how or when an agent moves, e.g. move only on even time steps.</li>
-      <li><b>Coordination</b> (16): position relative to others, e.g. join a staircase-shaped queue at its tail.</li>
-      <li><b>Allocation</b> (11): how a shared resource is divided, e.g. at most two agents in a zone.</li>
+      <li style="--fam: #23417a"><b>Access</b> (12): where an agent may go, e.g. sit only in one area or avoid a zone.</li>
+      <li style="--fam: #8f2a1d"><b>Procedure</b> (11): how or when an agent moves, e.g. move only on even time steps.</li>
+      <li style="--fam: #2e6b3a"><b>Coordination</b> (16): position relative to others, e.g. join a staircase-shaped queue at its tail.</li>
+      <li style="--fam: #b35a1f"><b>Allocation</b> (11): how a shared resource is divided, e.g. at most two agents in a zone.</li>
     </ul>
 
     <figure class="norm-figure">
@@ -123,24 +123,23 @@
         <b>Two example norms from each family.</b> Pick a norm to watch it. Every customer follows the
         norm except one, who breaks it and is marked in red when the violation happens.
       </figcaption>
-      <div class="norm-viewer">
       <div class="norm-picker">
-        <div class="norm-family" role="group" aria-label="Access">
+        <div class="norm-family" role="group" aria-label="Access" style="--fam: #23417a">
           <span>Access</span>
           <button type="button" data-norm="a1_access_seat_bottom_left" aria-pressed="true">Sit only in the bottom-left area</button>
           <button type="button" data-norm="a2_access_avoid_zone_q" aria-pressed="false">Avoid walking through zone Q</button>
         </div>
-        <div class="norm-family" role="group" aria-label="Procedure">
+        <div class="norm-family" role="group" aria-label="Procedure" style="--fam: #8f2a1d">
           <span>Procedure</span>
           <button type="button" data-norm="b1_procedure_clockwise" aria-pressed="false">Move in a clockwise trajectory</button>
           <button type="button" data-norm="b2_procedure_even_steps" aria-pressed="false">Move only on even time steps</button>
         </div>
-        <div class="norm-family" role="group" aria-label="Coordination">
+        <div class="norm-family" role="group" aria-label="Coordination" style="--fam: #2e6b3a">
           <span>Coordination</span>
           <button type="button" data-norm="c1_coordination_staircase_queue" aria-pressed="false">Join the staircase queue at its tail</button>
           <button type="button" data-norm="c2_coordination_wall_queue" aria-pressed="false">Join the queue along the wall at its tail</button>
         </div>
-        <div class="norm-family" role="group" aria-label="Allocation">
+        <div class="norm-family" role="group" aria-label="Allocation" style="--fam: #b35a1f">
           <span>Allocation</span>
           <button type="button" data-norm="d1_allocation_group_door" aria-pressed="false">Exit through your group&rsquo;s door</button>
           <button type="button" data-norm="d2_allocation_zone_r_capacity" aria-pressed="false">At most two agents may be in zone R</button>
@@ -149,7 +148,6 @@
       <video id="norm-video" autoplay muted loop playsinline preload="metadata" poster="static/video/norms/a1_access_seat_bottom_left.jpg">
         <source src="static/video/norms/a1_access_seat_bottom_left.mp4" type="video/mp4">
       </video>
-      </div>
     </figure>
   </section>
 
@@ -187,6 +185,12 @@
       Dark bars show performance in test episodes whose layout is the same as in the learning stage;
       light bars show performance in test episodes whose layout differs from the learning stage.
     </p>
+
+    <div class="stats">
+      <div><strong>55.3%</strong><span>best LLM agent, Claude Opus 5</span></div>
+      <div><strong>88.0%</strong><span>human participants</span></div>
+      <div><strong>90.7%</strong><span>GPT-5.6 Sol when told the norm</span></div>
+    </div>
 
     <figure class="bars">
       <div class="bar-legend">
