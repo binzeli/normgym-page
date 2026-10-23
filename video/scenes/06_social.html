@@ -38,13 +38,14 @@ const [lw] = crop($('#legend'), [0.1525, 0.025, 0.82, 0.076], 0.52);
 $('#legendCard').style.marginLeft = -(lw / 2 + 24) + 'px';
 const [cw, ch] = crop($('#cropC'), [0.5025, 0.512, 0.742, 0.958], 0.7);
 const [dw, dh] = crop($('#cropD'), [0.745, 0.512, 0.995, 0.95], 0.7);
-// highlight boxes as fractions of each crop
+// highlight boxes as fractions of each crop; x-axis label edges come from the PDF text layer
+// (only one box shows at a time, so neighbouring boxes may overlap)
 function box(id, [x0, y0, x1, y1], w, h) {
   Object.assign($(id).style, { left: 22 + x0 * w + 'px', top: 22 + y0 * h + 'px', width: (x1 - x0) * w + 'px', height: (y1 - y0) * h + 'px' });
 }
-box('#h1', [0.2, 0.12, 0.455, 0.995], cw, ch);
-box('#h2', [0.455, 0.45, 0.7, 0.995], cw, ch);
-box('#h3', [0.7, 0.55, 0.99, 0.995], cw, ch);
+box('#h1', [0.235, 0.12, 0.46, 0.995], cw, ch);
+box('#h2', [0.466, 0.45, 0.693, 0.995], cw, ch);
+box('#h3', [0.684, 0.55, 0.955, 0.995], cw, ch);
 box('#h4', [0.0, 0.31, 0.8, 0.64], dw, dh);
 
 const CAPS = [
